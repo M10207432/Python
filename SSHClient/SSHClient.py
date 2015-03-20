@@ -1,5 +1,6 @@
 import paramiko
 import time
+import re
 
 def main():
     #Connect SSH server
@@ -8,22 +9,34 @@ def main():
     ssh.connect("140.118.172.121",22,"m10207432","m10207432")
 
     chan=ssh.invoke_shell()
-    print chan.recv(1024)
-    
+    print chan.recv(9999)
+    chan.send('\n')
+    time.sleep(1)
+    result=chan.recv(9999)
+    insidecmd=0
     #Command Script
     try:
         while True:
-            
-            cmd=raw_input("Command:")
+            if insidecmd==0:
+                cmd=raw_input("Command:")
+            else:
+                cmd=raw_input("")
             chan.send(cmd+'\n')
             
-            time.sleep(1)
+            time.sleep(0.1)
             
             result=chan.recv(9999)
+            rlist=result.split('\n')
+            if len(rlist)>=2:
+                rlist.remove(rlist[0])                  #remove first one
+                if rlist[len(rlist)-1].find('@')>0:
+                    rlist.remove(rlist[len(rlist)-1])   #remove last one
+                    insidecmd=0
+                else:
+                    insidecmd=1
             
-            print result
-            
-            #print stderr.readlines()
+            for i in rlist:
+                print (re.compile(r'\x1b[^m]*m')).sub('', i)
     except:
         ssh.close()
     
