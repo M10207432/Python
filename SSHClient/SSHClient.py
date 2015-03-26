@@ -4,10 +4,10 @@ import re
 import pysftp
 import os
 
-'''
+
 account=raw_input("Account:")
 passwd=raw_input("Password:")
-'''
+
 ip="192.168.29.128"
 port = 22
 
