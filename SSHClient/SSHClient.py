@@ -2,13 +2,12 @@ import paramiko
 import time
 import re
 import pysftp
+import os
 
 '''
 account=raw_input("Account:")
 passwd=raw_input("Password:")
 '''
-account='m10207432'
-passwd='m10207432'
 ip="192.168.29.128"
 port = 22
 
@@ -51,16 +50,33 @@ def SendCMD():
     except:
         ssh.close()
 
-def main():
-    
+'''====================================
+        remotepath
+===================================='''
+def SSHUpload(remotedir,localfile):
     Conn_sftp=paramiko.Transport((ip, port))
     Conn_sftp.connect(username=account, password=passwd)
 
-    sftp=paramiko.SFTPClient.from_transport(Conn_sftp)
-    remotepath='/home/m10207432/upload1.txt'
-    localpath='./upload.txt'
-    sftp.put(localpath,remotepath)
+    sftp = paramiko.SFTPClient.from_transport(Conn_sftp)
+    try:
+        sftp.chdir(remotedir)  # Test if remote_path exists
+    except IOError:
+        sftp.mkdir(remotedir)  # Create remote_path
+        sftp.chdir(remotedir)
+    sftp.put(localfile, remotedir)    # At this point, you are in remote_path in either case
     Conn_sftp.close()
+    
+def SSHdlowload(remotefile,localfile):
+    Conn_sftp=paramiko.Transport((ip, port))
+    Conn_sftp.connect(username=account, password=passwd)
+
+    sftp = paramiko.SFTPClient.from_transport(Conn_sftp)
+    sftp.get(localfile, remotefile)    # At this point, you are in remote_path in either case
+    Conn_sftp.close()
+    
+def main():
+    
+    SSHUpload('./sshtest2', './sshtest3.txt')#remotedir, localfile
     
     #SendCMD()
     
