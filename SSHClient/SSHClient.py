@@ -1,17 +1,23 @@
 import paramiko
 import time
 import re
+import pysftp
 
-
+'''
 account=raw_input("Account:")
 passwd=raw_input("Password:")
-
-#Connect SSH server
-ssh=paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect("140.118.172.121",22,account,passwd)
+'''
+account='m10207432'
+passwd='m10207432'
+ip="192.168.29.128"
+port = 22
 
 def SendCMD():
+    #Connect SSH server
+    ssh=paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(ip,port,account,passwd)
+
     chan=ssh.invoke_shell()
     print chan.recv(9999)
     chan.send('\n')
@@ -46,14 +52,17 @@ def SendCMD():
         ssh.close()
 
 def main():
-    '''
-    sftp=paramiko.SFTPClient.from_transport(ssh)
-    remotepath='/home/m10207432/upload.txt'
-    localpath='/upload.txt'
+    
+    Conn_sftp=paramiko.Transport((ip, port))
+    Conn_sftp.connect(username=account, password=passwd)
+
+    sftp=paramiko.SFTPClient.from_transport(Conn_sftp)
+    remotepath='/home/m10207432/upload1.txt'
+    localpath='./upload.txt'
     sftp.put(localpath,remotepath)
-    ssh.close()
-    '''
-    SendCMD()
+    Conn_sftp.close()
+    
+    #SendCMD()
     
 if __name__=="__main__":
     main()
