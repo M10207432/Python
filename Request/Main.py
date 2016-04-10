@@ -27,11 +27,20 @@ def YouTube(URL):
     f.close()
     
 def YYLS(URL):
+    #Get Maxpage and url
     res=requests.get(URL)
     page=re.search('"og:image" content="(.*?)"',res.text)
     Maxpage=re.search('openimg\((.*?)\)',res.text).group(1).split(',')[1]
+    
     print Maxpage[1:len(Maxpage)-1]
     print page.group(1)
+
+    #Save img
+    res2=requests.get(page.group(1),stream=True)
+    f=open('1.jpg','wb')
+    shutil.copyfileobj(res2.raw,f)
+    f.close()
+    
 def main():
     
     YYLS(URL)
