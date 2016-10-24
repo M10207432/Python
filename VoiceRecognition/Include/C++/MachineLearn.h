@@ -3,16 +3,11 @@
 /*======================
 		Structure
 ======================*/
-typedef enum {
-	input,
-	output,
-	hidden,
-}node_type;
+
 
 typedef struct _node{
 	int id;							//Node id
 	int layer_id;				//Node Layer id
-	node_type type;	//node type {input, outpu, hidden}
 
 	double weight;
 	double value;
@@ -30,12 +25,11 @@ typedef struct _node{
 #define HiddenNum 10
 #define OutputNum 1
 
-#define TestSetNum 10
+#define TestSetNum 5
 
 #define EndVal 100
 #define init_weight 0.1
 #define init_th 0.1
-
 
 #define FileSIZE 100
 /*======================
@@ -48,7 +42,7 @@ double GetInput(PyObject* list);
 */
 double* MatrixEvaluate(double* input, double *hiddenNode, double *Hidden_th);
 void AssignHiddenNode();
-
+void AssignIO(char *);
 /*======================
 		Test
 ======================*/

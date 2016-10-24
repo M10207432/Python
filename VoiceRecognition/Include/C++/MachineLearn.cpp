@@ -3,30 +3,43 @@
 #include <stdio.h>
 #include <math.h>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
 /*======================
 	Global Variable
 ======================*/
 
-double input[TestSetNum][InputNum+1];			//last one for end
-double output[TestSetNum][OutputNum+1];	//last one for end
+double input[TestSetNum][InputNum];			//last one for end
+double output[TestSetNum][OutputNum];	//last one for end
 
 /*======================
 						Function
 ======================*/
 void AssignIO(char * path){
-	fstream file;
-	char line[FileSIZE];
+	ifstream  file;
 
+	//Open file & Arrange structure
 	file.open(path,ios::in);
 
+	for(int set_id=0; set_id<TestSetNum;set_id++){
+		for(int i=0; i<InputNum; i++){
+			file>>input[set_id][i];
+		}
+		for(int j=0; j<OutputNum; j++){
+			file>>output[set_id][j];
+		}
+	}
 
-
-    while(file.getline(line,sizeof(line),'\n')){
-        cout<<line<<endl;
-    }
- 
+	//Show data
+	for(int set_id=0; set_id<TestSetNum;set_id++){
+		for(int i=0; i<InputNum; i++){
+			cout<<input[set_id][i]<<endl;;
+		}
+		for(int j=0; j<OutputNum; j++){
+			cout<<output[set_id][j]<<endl;
+		}
+	}
 }
 
 void AssignHiddenNode(){
