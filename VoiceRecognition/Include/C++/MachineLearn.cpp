@@ -1,17 +1,53 @@
 #include "MachineLearn.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+#include <fstream>
 
+using namespace std;
 /*======================
 	Global Variable
 ======================*/
 
-double input[InputNum];
-double weight[InputNum+HiddenNum][HiddenNum];
+double input[TestSetNum][InputNum+1];			//last one for end
+double output[TestSetNum][OutputNum+1];	//last one for end
 
 /*======================
-		Function
+						Function
 ======================*/
+void AssignIO(char * path){
+	fstream file;
+	char line[FileSIZE];
+
+	file.open(path,ios::in);
+
+
+
+    while(file.getline(line,sizeof(line),'\n')){
+        cout<<line<<endl;
+    }
+ 
+}
+
+void AssignHiddenNode(){
+	Node* HEAD_Hidden=(Node *)malloc(sizeof(Node));
+	Node* tmp;
+
+	//Assign Hidden layer link list
+	tmp=HEAD_Hidden;
+	tmp->next=NULL;
+	for(int i=0; i<HiddenNum; i++){
+		Node* n=(Node *)malloc(sizeof(Node));
+		n->weight=init_weight;
+		n->threshold=init_th;
+
+		tmp->next=n;
+		tmp=n;
+	}
+	tmp->next=NULL;
+}
+
+
 double* MatrixEvaluate(double* input, double *hiddenNode, double *Hidden_th){
 	int input_num=0;
 	int weight_num=0;
@@ -43,6 +79,7 @@ double* MatrixEvaluate(double* input, double *hiddenNode, double *Hidden_th){
 			output=output+(*input_ptr)*(*w);
 		}
 		output=output+(*Hidden_th++);
+		output=1/(1+exp(output));
 
 		//Assign result to Output Node
 		(*OutputMatrix)=output;
