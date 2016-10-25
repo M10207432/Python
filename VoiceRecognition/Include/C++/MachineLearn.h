@@ -25,13 +25,14 @@ typedef struct _node{
 #define HiddenNum 10
 #define OutputNum 1
 
-#define TestSetNum 5
+#define SetNum 5
 
 #define EndVal 100
 #define init_weight 0.1
 #define init_th 0.1
 
 #define FileSIZE 100
+#define RandRng 1000
 /*======================
 	Function Prototype
 ======================*/
@@ -40,9 +41,10 @@ typedef struct _node{
 PyObject* SqrtInPyObj(PyObject* obj);
 double GetInput(PyObject* list);
 */
-double* MatrixEvaluate(double* input, double *hiddenNode, double *Hidden_th);
+void MatrixEvaluate(double* input, double *hiddenNode, double *Hidden_th);
 void AssignHiddenNode();
 void AssignIO(char *);
+void RUN();
 /*======================
 		Test
 ======================*/
