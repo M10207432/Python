@@ -6,12 +6,18 @@
 #include <iostream>
 #include <time.h>
 using namespace std;
+
 /*======================
 	Global Variable
 ======================*/
 
 double input[SetNum][InputNum];			//last one for end
 double output[SetNum][OutputNum];	//last one for end
+
+double result[OutputNum];				//For calculate the result
+double outputErr[OutputNum];
+double hiddenErr[HiddenNum];
+
 double th_output[OutputNum];
 double IH_weight[InputNum][HiddenNum];
 double HO_weight[HiddenNum][OutputNum];
@@ -22,6 +28,8 @@ char* path="../../IO.txt";
 /*======================
 						Function
 ======================*/
+
+
 void AssignIO(char * path){
 	ifstream  file;
 	srand(time(NULL));
@@ -59,6 +67,7 @@ void AssignIO(char * path){
 
 }
 
+
 void AssignHiddenNode(){
 	HEAD_Hidden=(Node *)malloc(sizeof(Node));
 	Node* tmp=HEAD_Hidden;
@@ -67,6 +76,9 @@ void AssignHiddenNode(){
 	tmp->next=NULL;
 	for(int i=0; i<HiddenNum; i++){
 		Node* n=(Node *)malloc(sizeof(Node));
+
+		n->id=i;
+		n->error=0;
 		n->threshold=(double)(rand()%(RandRng*2))/RandRng-1;
 
 		tmp->next=n;
@@ -81,6 +93,7 @@ void MatrixEvaluate(double  *input, Node *hiddenNode){
 			Evaluate Ouput &
 			Assign value 
 	----------------------------------*/
+
 	Node* hidden=hiddenNode->next;
 	for(int hi_idx=0; (hi_idx<HiddenNum && hidden!=NULL); (hi_idx++,hidden=hidden->next)){
 		double output=0;
@@ -96,24 +109,79 @@ void MatrixEvaluate(double  *input, Node *hiddenNode){
 		hidden->value=output;
 	}
 }
-void OutputEvaluate(Node* hiddenNode, double *output){
-	double result;
-	
-	for(int i=0; i<OutputNum; i++){
-		result=0;
-		 Node* hidden=hiddenNode->next;
-		
-		 for(int hi_idx=0;  (hi_idx<HiddenNum && hidden!=NULL); (hi_idx++,hidden=hidden->next)){
-			result=result+(hidden->value)*(HO_weight[hi_idx][i]);
-		}
-		 result=result+th_output[i];
-		 result=1/(1+exp(result));
 
-		 //Assign result to Output Node
-		output[i]=result;
+
+void OutputEvaluate(Node* hiddenNode, double *output){
+	
+	//Evaluate Output
+	for(int i=0; i<OutputNum; i++){
+		result[i]=0;
+		Node* hidden=hiddenNode->next;
+		
+		for(int hi_idx=0;  (hi_idx<HiddenNum && hidden!=NULL); (hi_idx++,hidden=hidden->next)){
+			result[i]=result[i]+(hidden->value)*(HO_weight[hi_idx][i]);
+		}
+		result[i]=result[i]+th_output[i];
+		result[i]=1/(1+exp(result[i]));
+
+	}
+}
+
+
+void ErrorEvaluate(int set){
+
+	//Evaluate output node error
+	for(int i=0; i<OutputNum; i++){
+		 outputErr[i]=result[i] * (1-result[i]) *(output[set][i]-result[i]);
+	}
+
+	//Evaluate hidden node error
+	for(Node* hidden=HEAD_Hidden->next; hidden!=NULL; hidden=hidden->next){
+		double sumErr=0;
+
+		for(int i=0; i<OutputNum; i++){
+			sumErr=sumErr+(outputErr[i]*HO_weight[hidden->id][i]);
+		}
+		sumErr=sumErr*hidden->value*(1-hidden->value);
+
+		hidden->error=sumErr;
 	}
 
 }
+
+
+void ReviseWeight(int set){
+	double delta=0;
+	
+	//Weight [Input->hidden]
+	for(int i=0; i<InputNum; i++){
+		for(Node* hidden=HEAD_Hidden->next; hidden!=NULL; hidden=hidden->next){
+			
+			delta=alpha_weight*hidden->error*input[set][i];
+			IH_weight[i][hidden->id]=IH_weight[i][hidden->id]+delta;
+		}
+	}
+	
+	//Weight [hidden->output]
+	for(Node* hidden=HEAD_Hidden->next; hidden!=NULL; hidden=hidden->next){
+		for(int i=0; i<OutputNum; i++){
+
+			delta=alpha_weight*outputErr[i]*hidden->value;
+			HO_weight[hidden->id][i]=HO_weight[hidden->id][i]+delta;	
+		}
+	}
+
+	//thershold revise
+	for(Node* h=HEAD_Hidden->next; h!=NULL; h=h->next){
+		h->threshold=h->threshold+alpha_weight*h->error;
+	}
+	
+	for(int i=0; i<OutputNum; i++){
+		th_output[i]=th_output[i]+alpha_weight*outputErr[i];
+	}
+
+}
+
 
 void RUN(){
 	
@@ -122,17 +190,16 @@ void RUN(){
 	
 	//Evaluate for hidden node
 	for(int i=0; i<SetNum; i++){
-		MatrixEvaluate(input[i], HEAD_Hidden);
-		OutputEvaluate(HEAD_Hidden,output[i]);
 
-
-
+		for(int test=0; test<10;test++){
+			MatrixEvaluate(input[i], HEAD_Hidden);
+			OutputEvaluate(HEAD_Hidden,output[i]);
+			ErrorEvaluate(i);
+			ReviseWeight(i);
+		}
 	}
 
 	//Evaluate for output
-
-
-	
 }
 
 
@@ -143,6 +210,7 @@ double Add(double n1, double n2){
 float Div(float n, float div){
 	return n/div;
 }
+
 
 #ifdef PYLIB
 double GetInput(PyObject* list){

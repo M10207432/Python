@@ -12,7 +12,8 @@ typedef struct _node{
 	double weight;
 	double value;
 	double threshold;	
-		
+	double error;	
+
 	struct _node* next;
 	struct _node* pre;
 }Node;
@@ -33,6 +34,9 @@ typedef struct _node{
 
 #define FileSIZE 100
 #define RandRng 1000
+
+#define alpha_weight 0.9
+
 /*======================
 	Function Prototype
 ======================*/
@@ -41,10 +45,17 @@ typedef struct _node{
 PyObject* SqrtInPyObj(PyObject* obj);
 double GetInput(PyObject* list);
 */
-void MatrixEvaluate(double* input, double *hiddenNode, double *Hidden_th);
+
+
+void MatrixEvaluate(double* , double *, double *);
+void ErrorEvaluate(int );
+void ReviseWeight(int );
+
 void AssignHiddenNode();
 void AssignIO(char *);
+
 void RUN();
+
 /*======================
 		Test
 ======================*/
