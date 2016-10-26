@@ -32,9 +32,10 @@ typedef struct _node{
 #define init_th 0.1
 
 #define FileSIZE 100
-#define RandRng 1000
+#define RandRng 100
 
 #define alpha_weight 0.9
+
 #define default_setting 0
 /*======================
 	Function Prototype
