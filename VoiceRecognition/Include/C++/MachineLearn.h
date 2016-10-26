@@ -22,8 +22,8 @@ typedef struct _node{
 	Configuration
 ======================*/
 
-#define InputNum 3
-#define HiddenNum 2
+#define InputNum 2
+#define HiddenNum 10
 #define OutputNum 1
 
 #define SetNum 5
@@ -35,7 +35,7 @@ typedef struct _node{
 #define RandRng 1000
 
 #define alpha_weight 0.9
-#define default_setting 1
+#define default_setting 0
 /*======================
 	Function Prototype
 ======================*/

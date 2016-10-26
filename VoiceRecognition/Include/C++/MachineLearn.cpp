@@ -218,7 +218,7 @@ void RUN(){
 	//Evaluate for hidden node
 	for(int i=0; i<1; i++){
 
-		for(int test=0; test<10;test++){
+		for(int test=0; test<100;test++){
 			MatrixEvaluate(input[i], HEAD_Hidden);
 			OutputEvaluate(HEAD_Hidden,output[i]);
 			ErrorEvaluate(i);
