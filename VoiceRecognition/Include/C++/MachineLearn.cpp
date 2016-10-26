@@ -22,7 +22,7 @@ double th_output[OutputNum];
 double IH_weight[InputNum][HiddenNum];
 double HO_weight[HiddenNum][OutputNum];
 
-#ifdef default_setting
+#if default_setting
 int default_idx=0;
 double default_weight[]={0.2,-0.3,0.4,0.1,-0.5,0.2,-0.3,-0.2,-0.4,0.2,0.1};
 #endif
@@ -53,11 +53,11 @@ void AssignIO(char * path){
 	//Input to Hidden Arrange [rand() from -1~1]
 	for(int i=0; i<InputNum; i++){
 		for(int j=0; j<HiddenNum; j++){
-#ifdef default_setting
+#if default_setting
 			IH_weight[i][j]=default_weight[default_idx];
 			default_idx++;
 #else
-			IH_weight[i][j]=(double)(rand()%(RandRng*2))/RandRng-1;
+				IH_weight[i][j]=(double)(rand()%(RandRng*2))/RandRng-1;	
 #endif
 		}
 	}
@@ -65,7 +65,7 @@ void AssignIO(char * path){
 	//Hidden to Output Arrange [rand() from -1~1]
 	for(int i=0; i<HiddenNum; i++){
 		for(int j=0; j<OutputNum; j++){
-#ifdef default_setting
+#if default_setting
 			HO_weight[i][j]=default_weight[default_idx];
 			default_idx++;
 #else
@@ -77,7 +77,7 @@ void AssignIO(char * path){
 
 	//Output threshold [rand() from -1~1]
 	for(int i=0; i<OutputNum; i++){
-#ifdef default_setting
+#if default_setting
 		th_output[i]=default_weight[10];
 		default_idx++;
 #else
@@ -100,7 +100,7 @@ void AssignHiddenNode(){
 
 		n->id=i;
 		n->error=0;
-#ifdef default_setting
+#if default_setting
 		static int id=8;
 		n->threshold=default_weight[id++];
 #else
