@@ -22,6 +22,10 @@ double th_output[OutputNum];
 double IH_weight[InputNum][HiddenNum];
 double HO_weight[HiddenNum][OutputNum];
 
+#ifdef default_setting
+int default_idx=0;
+double default_weight[]={0.2,-0.3,0.4,0.1,-0.5,0.2,-0.3,-0.2,-0.4,0.2,0.1};
+#endif
 Node* HEAD_Hidden;
 
 char* path="../../IO.txt";
@@ -49,20 +53,37 @@ void AssignIO(char * path){
 	//Input to Hidden Arrange [rand() from -1~1]
 	for(int i=0; i<InputNum; i++){
 		for(int j=0; j<HiddenNum; j++){
+#ifdef default_setting
+			IH_weight[i][j]=default_weight[default_idx];
+			default_idx++;
+#else
 			IH_weight[i][j]=(double)(rand()%(RandRng*2))/RandRng-1;
+#endif
 		}
 	}
 
 	//Hidden to Output Arrange [rand() from -1~1]
 	for(int i=0; i<HiddenNum; i++){
 		for(int j=0; j<OutputNum; j++){
+#ifdef default_setting
+			HO_weight[i][j]=default_weight[default_idx];
+			default_idx++;
+#else
 			HO_weight[i][j]=(double)(rand()%(RandRng*2))/RandRng-1;
+#endif
+			
 		}
 	}
 
 	//Output threshold [rand() from -1~1]
 	for(int i=0; i<OutputNum; i++){
+#ifdef default_setting
+		th_output[i]=default_weight[10];
+		default_idx++;
+#else
 		th_output[i]=(double)(rand()%(RandRng*2))/RandRng-1;
+#endif
+		
 	}
 
 }
@@ -79,7 +100,13 @@ void AssignHiddenNode(){
 
 		n->id=i;
 		n->error=0;
-		n->threshold=(double)(rand()%(RandRng*2))/RandRng-1;
+#ifdef default_setting
+		static int id=8;
+		n->threshold=default_weight[id++];
+#else
+	n->threshold=(double)(rand()%(RandRng*2))/RandRng-1;
+#endif
+		
 
 		tmp->next=n;
 		tmp=n;
@@ -103,7 +130,7 @@ void MatrixEvaluate(double  *input, Node *hiddenNode){
 			output=output+*(input+i)*IH_weight[i][hi_idx];
 		}
 		output=output+(hidden->threshold);
-		output=1/(1+exp(output));
+		output=1/(1+exp(-output));
 
 		//Assign result to Output Node
 		hidden->value=output;
@@ -122,7 +149,7 @@ void OutputEvaluate(Node* hiddenNode, double *output){
 			result[i]=result[i]+(hidden->value)*(HO_weight[hi_idx][i]);
 		}
 		result[i]=result[i]+th_output[i];
-		result[i]=1/(1+exp(result[i]));
+		result[i]=1/(1+exp(-result[i]));
 
 	}
 }
@@ -189,7 +216,7 @@ void RUN(){
 	AssignHiddenNode();
 	
 	//Evaluate for hidden node
-	for(int i=0; i<SetNum; i++){
+	for(int i=0; i<1; i++){
 
 		for(int test=0; test<10;test++){
 			MatrixEvaluate(input[i], HEAD_Hidden);
