@@ -212,20 +212,36 @@ void ReviseWeight(int set){
 
 void RUN(){
 	
+	double EndError=0;
+
 	AssignIO(path);
 	AssignHiddenNode();
 	
 	//Evaluate for hidden node
-	for(int i=0; i<1; i++){
-
-		for(int test=0; test<100;test++){
+	do{
+		EndError=0;
+		
+		for(int i=0; i<SetNum; i++){
+			
 			MatrixEvaluate(input[i], HEAD_Hidden);
 			OutputEvaluate(HEAD_Hidden,output[i]);
 			ErrorEvaluate(i);
 			ReviseWeight(i);
-		}
-	}
 
+			if(output[i][0]>result[0]){
+				if((output[i][0]-result[0])>EndError){
+					EndError=output[i][0]-result[0];
+				}
+			}else{
+				if((result[0]-output[i][0])>EndError){
+					EndError=result[0]-output[i][0];
+				}
+			}
+			printf("Real Output=%lf, Result=%lf\n",output[i][0],result[0]);
+		}
+		printf("Error=%lf\n",EndError);
+	}while(EndError>0.005);
+		
 	//Evaluate for output
 }
 
