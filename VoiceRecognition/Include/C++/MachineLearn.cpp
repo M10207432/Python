@@ -138,7 +138,7 @@ void MatrixEvaluate(double  *input, Node *hiddenNode){
 }
 
 
-void OutputEvaluate(Node* hiddenNode, double *output){
+void OutputEvaluate(Node* hiddenNode){
 	
 	//Evaluate Output
 	for(int i=0; i<OutputNum; i++){
@@ -213,6 +213,7 @@ void ReviseWeight(int set){
 void RUN(){
 	
 	double EndError=0;
+	double testing_input[InputNum];
 
 	AssignIO(path);
 	AssignHiddenNode();
@@ -223,8 +224,9 @@ void RUN(){
 		
 		for(int i=0; i<SetNum; i++){
 			
-			MatrixEvaluate(input[i], HEAD_Hidden);
-			OutputEvaluate(HEAD_Hidden,output[i]);
+			MatrixEvaluate(input[i], HEAD_Hidden);		
+			OutputEvaluate(HEAD_Hidden);						//output is result[i]
+
 			ErrorEvaluate(i);
 			ReviseWeight(i);
 
@@ -237,11 +239,23 @@ void RUN(){
 					EndError=result[0]-output[i][0];
 				}
 			}
-			printf("Real Output=%lf, Result=%lf\n",output[i][0],result[0]);
 		}
 		printf("Error=%lf\n",EndError);
-	}while(EndError>0.005);
+	}while(EndError>delta_error);
+	
+	//Testing!!!
+	while(1){
+		printf("Enter your input: ");
+		cin>>testing_input[0]>>testing_input[1];
+		if(testing_input[0]>1 || testing_input[1]>1){
+			break;
+		}
+
+		MatrixEvaluate(&testing_input[0], HEAD_Hidden);		
+		OutputEvaluate(HEAD_Hidden);						//output is result[i]
 		
+		printf("Result=%lf\n",result[0]);
+	}
 	//Evaluate for output
 }
 

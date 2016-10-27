@@ -26,7 +26,7 @@ typedef struct _node{
 #define HiddenNum 10
 #define OutputNum 1
 
-#define SetNum 5
+#define SetNum 81
 
 #define init_weight 0.1
 #define init_th 0.1
@@ -35,6 +35,7 @@ typedef struct _node{
 #define RandRng 100
 
 #define alpha_weight 0.9
+#define delta_error 0.005
 
 #define default_setting 0
 /*======================
@@ -48,6 +49,7 @@ double GetInput(PyObject* list);
 
 
 void MatrixEvaluate(double* , double *, double *);
+void OutputEvaluate(Node* );
 void ErrorEvaluate(int );
 void ReviseWeight(int );
 
