@@ -24,14 +24,20 @@ void PreEmphasis(double *data){
 (N 256 or 512)
 =============================*/
 void FrameBlock(double *data){
+	int i=0;
 	double Hamming_Wid=0;
 
-	for(int i=0; i<FrameSample; i=i+Frame_N){
+	do{
 		for(int j=0; j<Frame_N; j++){
-			Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*j)/(Frame_N-1));
-			Hamming_Output[i+j]=Hamming_Wid*data[i+j];
+			if((i+j)<FrameSample){
+				Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*j)/(Frame_N-1));
+				Hamming_Output[i+j]=Hamming_Wid*data[i+j];
+			}
 		}
-	}
+
+		i=i+Frame_N-Frame_M; //Increase Frame index
+
+	}while(i<FrameSample);
 }
 
 
