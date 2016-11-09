@@ -17,27 +17,40 @@ void PreEmphasis(double *data){
 }
 
 /*=============================
-			<Frame Block & Hamming Block>
+			<Frame Block with Hamming Block & FFT>
 		For getting N point as one frame
 		There would have M points overlay
 (Signal Sampling freq is 8KHZ~16KHZ)
 (N 256 or 512)
 =============================*/
 void FrameBlock(double *data){
-	int i=0;
+	
+	int frame_idx=0;
 	double Hamming_Wid=0;
+	double sum=0;
 
 	do{
-		for(int j=0; j<Frame_N; j++){
-			if((i+j)<FrameSample){
-				Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*j)/(Frame_N-1));
-				Hamming_Output[i+j]=Hamming_Wid*data[i+j];
+
+		//Evaluate for each Window
+		for(int k=frame_idx; k<Frame_N+frame_idx; k++){
+			for(int n=frame_idx; n<Frame_N+frame_idx; n++){
+				if(n>=FrameSample){
+					continue;
+				}
+				Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*n)/(Frame_N-1));
+				sum=Hamming_Wid*data[n]*exp((-2*PI*k*n)/Frame_N)+sum;		
 			}
+			if(k>=FrameSample){
+					break;
+			}
+			FFT_Output[k]=sum;
 		}
 
-		i=i+Frame_N-Frame_M; //Increase Frame index
+		//For next Window
+		frame_idx=frame_idx+Frame_N-Frame_M;
 
-	}while(i<FrameSample);
+
+	}while(frame_idx<FrameSample);
+
 }
-
 

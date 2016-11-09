@@ -3,5 +3,6 @@
 
 void PreEmphasis(double *);
 void FrameBlock(double *);	
+void FFT(double *);
 
 #endif
