@@ -1,6 +1,7 @@
 #include "VoiceWindow.h"
 #include "Config.h"
 #include <math.h>
+#include <complex>
 
 /*====================
 				Signal pass through 
@@ -32,23 +33,23 @@ void FrameBlock(double *data){
 	do{
 
 		//Evaluate for each Window
-		for(int k=frame_idx; k<Frame_N+frame_idx; k++){
-			for(int n=frame_idx; n<Frame_N+frame_idx; n++){
-				if(n>=FrameSample){
-					continue;
-				}
+		for(int k=0; k<Frame_N && (k+frame_idx)<FrameSample; k++){
+			 std::complex<double> sum(0.0,0.0);	// complex(Real,Img)
+
+			 //Evaluate for each FFT (0~K)
+			for(int n=0; n<Frame_N && (n+frame_idx)<FrameSample; n++){
+
 				Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*n)/(Frame_N-1));
-				sum=Hamming_Wid*data[n]*exp((-2*PI*k*n)/Frame_N)+sum;		
+				std::complex<double> exp_pow(0.0,( -2*PI*k*n)/Frame_N);		// complex(Real,Img)
+				
+				sum=(data[n+frame_idx])*Hamming_Wid*exp(exp_pow);		
 			}
-			if(k>=FrameSample){
-					break;
-			}
-			FFT_Output[k]=sum;
+
+			FFT_Output[k+frame_idx]=(abs(sum)*abs(sum))/Frame_N;
 		}
 
 		//For next Window
 		frame_idx=frame_idx+Frame_N-Frame_M;
-
 
 	}while(frame_idx<FrameSample);
 
