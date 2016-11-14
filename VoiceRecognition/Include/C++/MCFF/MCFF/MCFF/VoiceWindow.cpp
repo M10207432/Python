@@ -26,9 +26,8 @@ void PreEmphasis(double *data){
 =============================*/
 void FrameBlock(double *data){
 	
-	int frame_idx=0;
+	unsigned int frame_idx=0;
 	double Hamming_Wid=0;
-	double sum=0;
 
 	do{
 
@@ -37,7 +36,7 @@ void FrameBlock(double *data){
 			 std::complex<double> sum(0.0,0.0);	// complex(Real,Img)
 
 			 //Evaluate for each FFT (0~K)
-			for(int n=0; n<Frame_N && (n+frame_idx)<FrameSample; n++){
+			for(int n=0; n<FFT_K && (n+frame_idx)<FrameSample; n++){
 
 				Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*n)/(Frame_N-1));
 				std::complex<double> exp_pow(0.0,( -2*PI*k*n)/Frame_N);		// complex(Real,Img)
@@ -55,3 +54,23 @@ void FrameBlock(double *data){
 
 }
 
+void FilterBank(double *data){
+	double mel_lower_freq=1125*log(1+Lower_Freq/700);
+	double mel_upper_freq=1125*log(1+Upper_Freq/700);
+	double mel_f[FilterBank_Num+2];
+	double BIN[FilterBank_Num+2];
+
+	//Transfer to Mel Frequence
+	for(int i=0; i<FilterBank_Num+2; i++){
+		mel_f[i]=mel_lower_freq+((mel_upper_freq-mel_lower_freq)/(FilterBank_Num+1))*i;
+		mel_f[i]=700*(exp(mel_f[i]/1125)-1);
+
+		//FFT BIN [f(i) = floor((nfft+1)*h(i)/samplerate)]
+		BIN[i]=floor(FFT_K*mel_f[i]/FrameSample);
+	}
+
+	
+	
+
+
+}

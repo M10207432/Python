@@ -3,6 +3,6 @@
 
 void PreEmphasis(double *);
 void FrameBlock(double *);	
-void FFT(double *);
+void FilterBank(double *);
 
 #endif
