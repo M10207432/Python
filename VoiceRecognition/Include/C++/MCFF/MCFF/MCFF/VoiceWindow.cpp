@@ -32,11 +32,11 @@ void FrameBlock(double *data){
 	do{
 
 		//Evaluate for each Window
-		for(int k=0; k<Frame_N && (k+frame_idx)<FrameSample; k++){
+		for(int k=0; k<FFT_K && (k+frame_idx)<FrameSample; k++){
 			 std::complex<double> sum(0.0,0.0);	// complex(Real,Img)
 
-			 //Evaluate for each FFT (0~K)
-			for(int n=0; n<FFT_K && (n+frame_idx)<FrameSample; n++){
+			 //Evaluate for each FFT (0~N)
+			for(int n=0; n<Frame_N && (n+frame_idx)<FrameSample; n++){
 
 				Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*n)/(Frame_N-1));
 				std::complex<double> exp_pow(0.0,( -2*PI*k*n)/Frame_N);		// complex(Real,Img)
@@ -69,7 +69,43 @@ void FilterBank(double *data){
 		BIN[i]=floor(FFT_K*mel_f[i]/FrameSample);
 	}
 
-	
+	//Through Filter
+	for(int i=0; i<FilterBank_Num+1; i++){
+		static double F_pre,F_m,F_post;
+		
+		//Find the filter id
+		if(i==0){
+			F_pre=0;
+			F_m=BIN[i];
+			F_post=BIN[i+1];
+		}else{
+			F_pre=BIN[i-1];
+			F_m=BIN[i];
+			F_post=BIN[i+1];
+		}
+
+		//
+		for(int k=0; k<FFT_K; k++){
+			if(FFT_Output[k]<F_pre){
+
+				MCFF[i][k]=0;
+
+			}else if (FFT_Output[k] >= F_pre && FFT_Output[k]<F_m){
+
+				MCFF[i][k]=(FFT_Output[k]-F_pre)/(F_m-F_pre);
+
+			}else if (FFT_Output[k] >= F_m && FFT_Output[k]<F_post){
+
+				MCFF[i][k]=(F_post-FFT_Output[k])/(F_post-F_m);
+
+			}else if (FFT_Output[k] >= F_post){
+
+				MCFF[i][k]=0;
+
+			}
+		}
+
+	}
 	
 
 

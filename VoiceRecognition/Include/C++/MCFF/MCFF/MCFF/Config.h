@@ -22,5 +22,6 @@
 
 double PreEmp_Output[FrameSample];
 double FFT_Output[FrameSample];
+double MCFF[FilterBank_Num][FFT_K];
 
 #endif
