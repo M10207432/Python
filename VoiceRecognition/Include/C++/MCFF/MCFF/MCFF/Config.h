@@ -18,13 +18,14 @@
 #define Hamming_gain 0.46
 #define FFT_K 400
 
-#define FilterBank_Num 10
+#define FilterBank_Num 24
+#define Mel_L 24
 #define Lower_Freq 300
 #define Upper_Freq 8000
 
 double PreEmp_Output[FrameSample];
 double FFT_Output[FrameSample];
 double DFT_Energy[FrameSample];
-double MCFF[FilterBank_Num][FFT_K];
+double MCFF[Mel_L];
 
 #endif

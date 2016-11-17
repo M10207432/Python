@@ -63,6 +63,9 @@ void FrameBlock(double *data, int frame_id, int frame_end){
 	//-------------------------------------------------------------Step2 (Bank Filter)
 	FilterBank( &Mel[0], &Energy[0], size);
 
+	//-------------------------------------------------------------Step2 (Bank Filter) Update MCFF[]
+	Cepstrum(&Mel[0]);
+
 }
 
 void FilterBank( double *Mel, double *Energy, int size){
@@ -113,6 +116,15 @@ void FilterBank( double *Mel, double *Energy, int size){
 }
 
 void Cepstrum(double *data){
-	//Discrete Cosine Transform
 
+	double Cn;
+
+	//Discrete Cosine Transform
+	for(int i=0; i<Mel_L; i++){
+		Cn=0;
+		for(int j=0; j<FilterBank_Num; j++){
+			Cn=Cn+(log(data[j]))*cos(i*(j-0.5)*PI/FilterBank_Num);
+		}
+		MCFF[i]=Cn;
+	}
 }
