@@ -3,6 +3,8 @@
 #include <math.h>
 #include <complex>
 
+using namespace std;
+
 /*====================
 				Signal pass through 
 					High Pass Filter
@@ -24,37 +26,46 @@ void PreEmphasis(double *data){
 (Signal Sampling freq is 8KHZ~16KHZ)
 (N 256 or 512)
 =============================*/
-void FrameBlock(double *data){
+void FrameBlock(double *data, int frame_id, int frame_end){
 	
-	unsigned int frame_idx=0;
+	complex<double> DFT_Val[Frame_N];	// complex(Real,Img)
+	double phase[Frame_N];
+	double Energy[Frame_N];
 	double Hamming_Wid=0;
+	int size=(frame_end-frame_id);
 
-	do{
+	//Avoid over Frame Size
+	if((frame_end-frame_id)>Frame_N){
+		printf("The Frame size is wrong\n");
+		return ;
+	}
 
-		//Evaluate for each Window
-		for(int k=0; k<FFT_K && (k+frame_idx)<FrameSample; k++){
-			 std::complex<double> sum(0.0,0.0);	// complex(Real,Img)
+	//Evaluate DFT for each Window-----------------------------Step1 (Evaluate DFT for each frame)
+	for(int k=0; k<size; k++){
+		complex<double> sum(0.0,0.0);	// complex(Real,Img)
 
-			 //Evaluate for each FFT (0~N)
-			for(int n=0; n<Frame_N && (n+frame_idx)<FrameSample; n++){
+		//Evaluate for each FFT (0~N-1)
+		for(int n=0; n<size; n++){
 
-				Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*n)/(Frame_N-1));
-				std::complex<double> exp_pow(0.0,( -2*PI*k*n)/Frame_N);		// complex(Real,Img)
+			Hamming_Wid=(1-Hamming_gain)-Hamming_gain*cos((2*PI*n)/(Frame_N-1));
+			complex<double> exp_pow(0.0,( -2*PI*k*n)/Frame_N);		// complex(Real,Img)
 				
-				sum=(data[n+frame_idx])*Hamming_Wid*exp(exp_pow);		
-			}
-
-			FFT_Output[k+frame_idx]=(abs(sum)*abs(sum))/Frame_N;
+			sum=(data[n+frame_id])*Hamming_Wid*exp(exp_pow);		
 		}
 
-		//For next Window
-		frame_idx=frame_idx+Frame_N-Frame_M;
+		Energy[k]=(abs(sum)*abs(sum))/Frame_N;
+		DFT_Val[k]=sum;
+		phase[k]=arg(sum);
+		//DFT_Energy[k+frame_id]=(abs(sum)*abs(sum))/Frame_N;
+	}
 
-	}while(frame_idx<FrameSample);
+	//-------------------------------------------------------------Step2 (Bank Filter)
+	FilterBank( data,  &phase[0], size);
+
 
 }
 
-void FilterBank(double *data){
+void FilterBank(double *data, double *phase, int size){
 	double mel_lower_freq=1125*log(1+Lower_Freq/700);
 	double mel_upper_freq=1125*log(1+Upper_Freq/700);
 	double mel_f[FilterBank_Num+2];
@@ -66,13 +77,14 @@ void FilterBank(double *data){
 		mel_f[i]=700*(exp(mel_f[i]/1125)-1);
 
 		//FFT BIN [f(i) = floor((nfft+1)*h(i)/samplerate)]
-		BIN[i]=floor(FFT_K*mel_f[i]/FrameSample);
+		BIN[i]=floor(Frame_N*mel_f[i]/FrameSample); 
 	}
 
-	//Through Filter
+	//Filter Bank
 	for(int i=0; i<FilterBank_Num+1; i++){
 		static double F_pre,F_m,F_post;
-		
+		int frame_id=i*Frame_N;
+
 		//Find the filter id
 		if(i==0){
 			F_pre=0;
@@ -85,7 +97,7 @@ void FilterBank(double *data){
 		}
 
 		//
-		for(int k=0; k<FFT_K; k++){
+		for(int k=frame_id; k<FFT_K+frame_id && k<FrameSample; k++){
 			if(FFT_Output[k]<F_pre){
 
 				MCFF[i][k]=0;
@@ -104,9 +116,10 @@ void FilterBank(double *data){
 
 			}
 		}
-
 	}
-	
+}
 
+void Cepstrum(double *data){
+	//Discrete Cosine Transform
 
 }

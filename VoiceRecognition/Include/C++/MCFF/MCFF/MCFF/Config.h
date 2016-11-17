@@ -11,10 +11,12 @@
 
 #define FrameInterval 0.025
 #define OverlapInterval 0.01
-#define FFT_K 512
-#define Frame_N (FrameSample*FrameInterval)
-#define Frame_M (FrameSample*OverlapInterval)
+
+#define Frame_N 400 //FrameSample*FrameInterval
+#define Frame_M 160 //FrameSample*OverlapInterval
+
 #define Hamming_gain 0.46
+#define FFT_K 400
 
 #define FilterBank_Num 10
 #define Lower_Freq 300
@@ -22,6 +24,7 @@
 
 double PreEmp_Output[FrameSample];
 double FFT_Output[FrameSample];
+double DFT_Energy[FrameSample];
 double MCFF[FilterBank_Num][FFT_K];
 
 #endif
