@@ -3,7 +3,7 @@
 
 void PreEmphasis(double *);
 void FrameBlock(double *);	
-void FilterBank(double *data, double *phase, int size);
+void FilterBank( double *Mel, double *Energy, int size);
 void Cepstrum(double *);
 
 #endif

@@ -31,6 +31,7 @@ void FrameBlock(double *data, int frame_id, int frame_end){
 	complex<double> DFT_Val[Frame_N];	// complex(Real,Img)
 	double phase[Frame_N];
 	double Energy[Frame_N];
+	double Mel[FilterBank_Num];
 	double Hamming_Wid=0;
 	int size=(frame_end-frame_id);
 
@@ -53,68 +54,60 @@ void FrameBlock(double *data, int frame_id, int frame_end){
 			sum=(data[n+frame_id])*Hamming_Wid*exp(exp_pow);		
 		}
 
-		Energy[k]=(abs(sum)*abs(sum))/Frame_N;
+		Energy[k]=(abs(sum)*abs(sum));
 		DFT_Val[k]=sum;
 		phase[k]=arg(sum);
 		//DFT_Energy[k+frame_id]=(abs(sum)*abs(sum))/Frame_N;
 	}
 
 	//-------------------------------------------------------------Step2 (Bank Filter)
-	FilterBank( data,  &phase[0], size);
-
+	FilterBank( &Mel[0], &Energy[0], size);
 
 }
 
-void FilterBank(double *data, double *phase, int size){
+void FilterBank( double *Mel, double *Energy, int size){
+	
+	double F_pre,F_m,F_post;
+	double Mel_para;
 	double mel_lower_freq=1125*log(1+Lower_Freq/700);
 	double mel_upper_freq=1125*log(1+Upper_Freq/700);
 	double mel_f[FilterBank_Num+2];
 	double BIN[FilterBank_Num+2];
 
 	//Transfer to Mel Frequence
-	for(int i=0; i<FilterBank_Num+2; i++){
-		mel_f[i]=mel_lower_freq+((mel_upper_freq-mel_lower_freq)/(FilterBank_Num+1))*i;
+	mel_f[0]=0;
+	for(int i=1; i<FilterBank_Num+2; i++){
+		mel_f[i]=mel_lower_freq+((mel_upper_freq-mel_lower_freq)/(FilterBank_Num+1))*(i-1);
 		mel_f[i]=700*(exp(mel_f[i]/1125)-1);
 
 		//FFT BIN [f(i) = floor((nfft+1)*h(i)/samplerate)]
 		BIN[i]=floor(Frame_N*mel_f[i]/FrameSample); 
 	}
 
-	//Filter Bank
-	for(int i=0; i<FilterBank_Num+1; i++){
-		static double F_pre,F_m,F_post;
-		int frame_id=i*Frame_N;
-
+	//Get Filter Bank Parameter
+	for(int i=1; i<FilterBank_Num+1; i++){
+		
 		//Find the filter id
-		if(i==0){
-			F_pre=0;
-			F_m=BIN[i];
-			F_post=BIN[i+1];
-		}else{
-			F_pre=BIN[i-1];
-			F_m=BIN[i];
-			F_post=BIN[i+1];
-		}
+		F_pre=BIN[i-1];
+		F_m=BIN[i];
+		F_post=BIN[i+1];
 
-		//
-		for(int k=frame_id; k<FFT_K+frame_id && k<FrameSample; k++){
-			if(FFT_Output[k]<F_pre){
+		//Energy pass through filter bank
+		for(int k=0; k<size; k++){
 
-				MCFF[i][k]=0;
-
-			}else if (FFT_Output[k] >= F_pre && FFT_Output[k]<F_m){
-
-				MCFF[i][k]=(FFT_Output[k]-F_pre)/(F_m-F_pre);
-
-			}else if (FFT_Output[k] >= F_m && FFT_Output[k]<F_post){
-
-				MCFF[i][k]=(F_post-FFT_Output[k])/(F_post-F_m);
-
-			}else if (FFT_Output[k] >= F_post){
-
-				MCFF[i][k]=0;
-
+			//Get the parameter
+			if(k<F_pre){
+				Mel_para=0;
+			}else if(k >= F_pre && k<F_m){
+				Mel_para=(k-F_pre)/(F_m-F_pre);
+			}else if(k >= F_m && k<F_post){
+				Mel_para=(F_post-k)/(F_post-F_m);
+			}else if(k >= F_post){
+				Mel_para=0;
 			}
+
+			//Energy Evaluate
+			Mel[i-1]=Energy[k]*Mel_para;
 		}
 	}
 }
