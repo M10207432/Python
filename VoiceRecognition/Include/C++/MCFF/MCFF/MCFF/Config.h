@@ -19,13 +19,16 @@
 #define FFT_K 400
 
 #define FilterBank_Num 24
-#define Mel_L 24
+#define Mel_L 12
+#define Delta_M 2
 #define Lower_Freq 300
 #define Upper_Freq 8000
 
 double PreEmp_Output[FrameSample];
 double FFT_Output[FrameSample];
 double DFT_Energy[FrameSample];
-double MCFF[Mel_L];
+
+double MFCC[Mel_L];
+double Delta_Cep[Delta_M*Mel_L];
 
 #endif

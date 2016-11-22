@@ -115,6 +115,9 @@ void FilterBank( double *Mel, double *Energy, int size){
 	}
 }
 
+/*=======================
+			Freq domain to Time domain
+=======================*/
 void Cepstrum(double *data){
 
 	double Cn;
@@ -125,6 +128,34 @@ void Cepstrum(double *data){
 		for(int j=0; j<FilterBank_Num; j++){
 			Cn=Cn+(log(data[j]))*cos(i*(j-0.5)*PI/FilterBank_Num);
 		}
-		MCFF[i]=Cn;
+		MFCC[i]=Cn;
 	}
+}
+
+void Delta_Cepstrum(double *data,int frame_id){
+	
+	double M=Delta_M;
+	
+	if(frame_id<M){
+		printf("Not enough Frame number in Delta_Cepstrum");
+		return;
+	}
+
+	for(int cnt=1; cnt<=M;cnt++){
+
+		for(int cep_i=0; cep_i<Mel_L; cep_i++){
+		
+			double tmp1=0;
+			double tmp2=0;
+		
+			for(int i=1; i<=cnt; i++){
+
+				tmp1+=i*(data[frame_id+i]-data[frame_id-i]);
+				tmp2+=2*i*i;
+			}
+			Delta_Cep[(cnt-1)*Mel_L+cep_i]=tmp1/tmp2;
+
+		}	
+	}
+	
 }
