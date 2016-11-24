@@ -21,11 +21,12 @@ def Viterbi(steps):
                     print start[k],State[k][through],Hidden_State[through][Hidden_target]
                     tmp=max(tmp, start[k]*State[k][through]*Hidden_State[through][Hidden_target])
                 result[through]=tmp
-                
+        
         for k in result.keys():
             start[k]=result[k]
-        print start
-        
+            
+        print start,"Predict Pre Weather=", max(start, key=lambda i:start[i])
+
 def main():
     print "HMM"
     
