@@ -28,7 +28,7 @@ def Viterbi(steps):
         print start,"Predict Pre Weather=", max(start, key=lambda i:start[i])
 
 def main():
-    print "HMM"
+    print "HMM Init"
     
     steps=["Walk","Walk","Shop","Clean"]
     Viterbi(steps)
