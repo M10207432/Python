@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """ setup.py file for SWIG example """
 from distutils.core import setup, Extension
 
