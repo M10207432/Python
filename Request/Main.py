@@ -9,8 +9,8 @@ JP_Proxy={"http_proxy":"http://103.56.218.194",
           "https_proxy":"https://103.56.218.194",
           "ftp_proxy":"ftp://103.56.218.194"}
 
-URL="http://8yyls.com/116304/"
-
+URL="http://8yyls.com/51377/"
+#http://moviesunusaaa.org/%E5%A5%B3%E8%B6%85%E4%BA%BA-%E7%AC%AC1%E5%AD%A3-%E7%AC%AC2%E9%9B%86-supergirl-s1-ep2/
 def YouTube(URL):
     res=requests.get(URL,proxies=(JP_Proxy))    
     m=re.search('"args":({.*?}),',res.text)
@@ -50,6 +50,8 @@ def YYLS(URL):
     '''     
     #-------------------------Save img
     img_name=1
+    
+    
     for imgurl in imgurl_list:        
         res2=requests.get(imgurl,stream=True)
         f=open(str(img_name)+'.jpg','wb')
@@ -59,7 +61,10 @@ def YYLS(URL):
         img_name+=1
     
 def main():
+    #YYLS(URL)
+    res=requests.get("http://moviesunusaaa.org/%E5%A5%B3%E8%B6%85%E4%BA%BA-%E7%AC%AC1%E5%AD%A3-%E7%AC%AC2%E9%9B%86-supergirl-s1-ep2/")
+    m=re.search('<iframe(.*)>',res.text)
+    print res
     
-    YYLS(URL)
 if __name__=="__main__":
     main()

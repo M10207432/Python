@@ -34,8 +34,8 @@ typedef struct _node{
 #define FileSIZE 100
 #define RandRng 100
 
-#define alpha_weight 0.9
-#define delta_error 0.005
+#define alpha_weight 0.99
+#define delta_error 0.5
 
 #define default_setting 0
 /*======================
@@ -57,10 +57,4 @@ void AssignHiddenNode();
 void AssignIO(char *);
 
 void RUN();
-
-/*======================
-		Test
-======================*/
-double Add(double n1, double n2);
-float Div(float n, float div);
 

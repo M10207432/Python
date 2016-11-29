@@ -107,7 +107,6 @@ void AssignHiddenNode(){
 	n->threshold=(double)(rand()%(RandRng*2))/RandRng-1;
 #endif
 		
-
 		tmp->next=n;
 		tmp=n;
 	}
@@ -206,7 +205,6 @@ void ReviseWeight(int set){
 	for(int i=0; i<OutputNum; i++){
 		th_output[i]=th_output[i]+alpha_weight*outputErr[i];
 	}
-
 }
 
 
@@ -215,10 +213,13 @@ void RUN(){
 	double EndError=0;
 	double testing_input[InputNum];
 
+	//================Init Input, Output, Weight & hidden node
+	printf("Init\n");
 	AssignIO(path);
 	AssignHiddenNode();
 	
-	//Evaluate for hidden node
+	//================Training
+	printf("Training\n");
 	do{
 		EndError=0;
 		
@@ -231,19 +232,33 @@ void RUN(){
 			ReviseWeight(i);
 
 			if(output[i][0]>result[0]){
-				if((output[i][0]-result[0])>EndError){
-					EndError=output[i][0]-result[0];
+				if((output[i][0]-result[0])*RandRng>EndError){
+					EndError=(output[i][0]-result[0])*RandRng;
 				}
 			}else{
-				if((result[0]-output[i][0])>EndError){
-					EndError=result[0]-output[i][0];
+				if((result[0]-output[i][0])*RandRng>EndError){
+					EndError=(result[0]-output[i][0])*RandRng;
 				}
 			}
 		}
 		printf("Error=%lf\n",EndError);
 	}while(EndError>delta_error);
 	
-	//Testing!!!
+	for(int i=0; i<InputNum; i++){
+		for(int j=0; j<HiddenNum; j++){
+			printf("%lf,",IH_weight[i][j]);
+		}
+		printf("\n");
+	}
+
+	for(int i=0; i<HiddenNum; i++){
+		for(int j=0; j<OutputNum; j++){
+			printf("%lf,",HO_weight[i][j]);
+		}
+		printf("\n");
+	}
+
+	//================Testing!!!
 	while(1){
 		printf("Enter your input: ");
 		cin>>testing_input[0]>>testing_input[1];
@@ -256,18 +271,7 @@ void RUN(){
 		
 		printf("Result=%lf\n",result[0]);
 	}
-	//Evaluate for output
 }
-
-
-double Add(double n1, double n2){
-	return n1+n2;
-}
-
-float Div(float n, float div){
-	return n/div;
-}
-
 
 #ifdef PYLIB
 double GetInput(PyObject* list){
