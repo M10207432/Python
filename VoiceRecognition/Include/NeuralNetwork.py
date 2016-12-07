@@ -3,15 +3,12 @@ import matplotlib
 import numpy as np
 
 class NN_Voc(NN_Module.MLPClassifier):
-    def __init__(self):
+    def __init__(self,Input,Output):
         print "Neural Network"
 
-        self.x=[]
-        self.y=[]
-        for i in range(1,10):
-            for j in range(1,10):
-                self.x.append([i,j])
-                self.y.append(i*j)
+        self.x=Input
+        self.y=Output
+        
         '''       
         self.x=[[0.,0.],[1.,1.]] #n_samples,n_features
         self.y=[0,1]            #n_samples
@@ -32,9 +29,19 @@ class NN_Voc(NN_Module.MLPClassifier):
         Result=self.clf.predict([[5., 2.], [12., 2.]])
 
         print Result
-    
+        
+def Retrieve_Data():
+    x=[]
+    y=[]
+    for i in range(1,10):
+        for j in range(1,10):
+            x.append([i,j])
+            y.append(i*j)
+    return x,y
+
 def main():
-    VocTrain= NN_Voc()
+    Input,Output=Retrieve_Data()
+    VocTrain= NN_Voc(Input,Output)
     
 
 

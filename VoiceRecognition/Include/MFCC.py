@@ -196,8 +196,13 @@ def lifter(cepstra,L=22):
         return cepstra
 
 def main():
-    (rate,sig) = wav.read("./Raw_data/1.wav")
-    mfcc_feat = calcMFCC_delta_delta(sig,rate) 
-    print(mfcc_feat.shape)
+    (rate,sig) = wav.read("./Raw_data/C2.wav")
+    mfcc_feat = calcMFCC_delta_delta(sig,rate)
+    with open("F.txt",'wb') as f:
+        for data in mfcc_feat:
+            f.write(str(data)+'\n')
+    
+    
+    
 if __name__=="__main__":
     main()
