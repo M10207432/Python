@@ -9,7 +9,7 @@ def index():
 
 def gen(source):
     while(True):
-        frame=source.get_frame()
+        frame=source.get_video()
         yield(b'--frame\r\n'
               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
@@ -19,4 +19,8 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__=="__main__":
-    app.run(host='0.0.0.0',debug=True)
+    try:
+        app.run(host='localhost',debug=True)
+    except:
+        print "shoutdown"
+        pass
