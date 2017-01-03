@@ -83,13 +83,36 @@ class LDA_Machine():
     if feature_len > 1:
       X=np.hstack([X, np.random.randn(sample_len, feature_len-1)])
     return X,y
+  
+  def chg_feature(self,n_sample,n_feature_max,step,avg):
+    lda1=[]
+    lda2=[]
+    
+    for n_feature in range(1,n_feature_max+1,step):
+      lda1_sum=0
+      lda2_sum=0
+      
+      for i in range(avg):
+        #For Training
+        X,y=self.genearate_data(n_sample, n_feature)
 
+        lda1_machine=LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto').fit(X,y)
+        lda2_machine=LinearDiscriminantAnalysis(solver='lsqr', shrinkage=None).fit(X,y)
+
+        #For Testing
+        X,y=self.genearate_data(n_sample, n_feature)
+
+        lda1_sum=lda1_machine.score(X,y)
+        lda2_sum=lda2_machine.score(X,y)
+      lda1.append(lda1_sum/avg)
+      lda2.append(lda2_sum/avg)
+    return lda1,lda2
     
 def main():
   print "Boot"
   LDA=LDA_Machine()
-  X,y=LDA.genearate_data(10,5)
-  print X,y
+  lda1,lda2=LDA.chg_feature(10,5,1,10)
+  print lda1,lda2
   
 if __name__=="__main__":
   main()
