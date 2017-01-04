@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
-from sklearn import datasets, svm, metrics
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import numpy as np
 
+from sklearn import datasets, svm, metrics
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 
 class SVM_Machine():
   def __init__(self):
@@ -107,12 +109,40 @@ class LDA_Machine():
       lda1.append(lda1_sum/avg)
       lda2.append(lda2_sum/avg)
     return lda1,lda2
+class IRIS():
+  def __init__(self):
+    print "Iris classifier"
+    
+  def load_data(self):
+    iris_dict=datasets.load_iris()
+
+    self.X=iris_dict.data[:,0:2]
+    self.y=iris_dict.target
+
+    self.n_samples=self.X.shape[0]
+    self.n_features=self.X.shape[1]
+
+    #Get feature matrix all compose
+    xx,yy=np.meshgrid(np.linspace(3,9,100),np.linspace(1,5,100).T)
+    Xfull=np.c_(xx.ravel(),yy.ravel())
+    
+    for key,value in iris_dict.items():
+      try:
+        print key,value.shape
+      except:
+        print key
     
 def main():
   print "Boot"
+  '''
   LDA=LDA_Machine()
   lda1,lda2=LDA.chg_feature(10,5,1,10)
   print lda1,lda2
+  '''
+  Iris_sample=IRIS()
+  Iris_sample.load_data()
+
+
   
 if __name__=="__main__":
   main()
