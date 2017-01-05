@@ -3,13 +3,15 @@ from StreamSource import streamsource
 
 app=Flask(__name__)
 
+video_file="2.mp4"
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 def gen(source):
     while(True):
-        frame=source.get_video()
+        frame=source.get_video(video_file)
         yield(b'--frame\r\n'
               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 

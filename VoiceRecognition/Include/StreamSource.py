@@ -11,9 +11,9 @@ class streamsource(object):
     def get_frame(self):
         return self.frames[int(time())%len(ex_file)]
 
-    def get_video(self):
+    def get_video(self,video_file):
         if self.success==False:
-            self.vidcap=cv2.VideoCapture('2.mp4')
+            self.vidcap=cv2.VideoCapture(video_file)
             self.success, self.video_img=self.vidcap.read()
             self.success=True
             
