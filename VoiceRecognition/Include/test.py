@@ -124,13 +124,59 @@ class IRIS():
 
     #Get feature matrix all compose
     xx,yy=np.meshgrid(np.linspace(3,9,100),np.linspace(1,5,100).T)
-    Xfull=np.c_(xx.ravel(),yy.ravel())
+    self.Xfull=np.c_[xx.ravel(),yy.ravel()]
     
     for key,value in iris_dict.items():
       try:
         print key,value.shape
       except:
         print key
+        
+  def training(self):
+    C=1.0
+    classifiers={"L1":LogisticRegression(C=C, penalty='l1'),
+                 "L2_OVR":LogisticRegression(C=C, penalty='l2'),
+                 "Linear":SVC(kernel='linear', C=C, probability=True, random_state=0),
+                 "L2_MUL":LogisticRegression(C=C, solver='lbfgs',multi_class="multinomial")}
+    n_classifiers=len(classifiers)
+    
+    fig=plt.figure(figsize=(12,12),dpi=300)
+    
+    for i , (name,classifier) in enumerate(classifiers.items()):
+
+      classifier.fit(self.X,self.y) #Training
+      y_pred=classifier.predict(self.X)  #Test
+
+      classifier_rate=np.mean(y_pred.ravel()==self.y.ravel())*100
+      print "Classfifier",name,classifier_rate
+
+      #View
+      probas=classifier.predict_proba(self.Xfull)
+      
+      n_classes=np.unique(y_pred).size
+      
+      for k in range(n_classes):
+        plt.subplot(n_classifiers, n_classes, i*n_classes+k+1)
+        plt.title("class %d" % k)
+        
+        if k==0:
+          plt.ylabel(name)
+        imshow_handle = plt.imshow(probas[:,k].reshape((100,100)),
+                                   extent=(3,9,1,5),
+                                   origin='lower')
+        plt.xticks(())
+        plt.yticks(())
+        idx = (y_pred==k)
+        if idx.any():
+          plt.scatter(self.X[idx,0], self.X[idx,1], marker='o', c='k')
+
+    ax=plt.axes([0.15,0.04,0.7,0.05])
+    plt.title('Probability')
+    plt.colorbar(imshow_handle, cax=ax, orientation='horizontal')
+
+    plt.show()
+        
+      
     
 def main():
   print "Boot"
@@ -141,6 +187,7 @@ def main():
   '''
   Iris_sample=IRIS()
   Iris_sample.load_data()
+  Iris_sample.training()
 
 
   
