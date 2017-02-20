@@ -59,7 +59,7 @@ class StockObj():
                         
         def cal_BuyorNotbuy(self,s_num,date,earn,countday):
                 counter=0
-                
+                Earn_Flag=False
                 #--------Check Data retrieve & parameter reasonable
                 if self.stockdata.has_key(s_num)==False:
                         self.stockGet(s_num,3)
@@ -86,11 +86,29 @@ class StockObj():
                                 return False
                 print "Already Prepare Done, Start Evalaute..."
                 print "Start Date=%s, Stock=%s" % (date,self.stockdata[s_num][date])
+
                 #--------Eval
-                #for d in self.stockdata[s_num]:
-                        
+                counter=0
+                d=date
+                
+                while counter<countday:
+                        while self.stockdata[s_num].has_key(d)==False and d<self.today:
+                                t=str(int(d.replace("/",""))+1)
+                                d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8])
+                        diff=float(self.stockdata[s_num][d])-float(self.stockdata[s_num][date])
+                        if diff >= earn:
+                                print "Earn money at %s, value=%s" % (d,self.stockdata[s_num][d])
+                                Earn_Flag=True
+                        counter+=1
+                        t=str(int(d.replace("/",""))+1)
+                        d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8]) 
+                if Earn_Flag==False:
+                        print "There is no Earn, so so not buy it"
+                        return 0
+                else:
+                        return 1
                         
 if __name__=="__main__":
         s=StockObj()
         
-        s.cal_BuyorNotbuy("2330","2017/01/07",1,100)  
+        s.cal_BuyorNotbuy("2330","2017/01/07",1,15)  
