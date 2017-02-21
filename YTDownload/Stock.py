@@ -41,8 +41,8 @@ class StockObj():
                         time_list.append(time)
                         stock_list.append(i[6])
                 
-                plt.plot(time_list,stock_list)
-                plt.show()
+                #plt.plot(time_list,stock_list)
+                #plt.show()
 
                 for stock_num in self.stockdata:
                         for  d in self.stockdata[stock_num]:
@@ -107,8 +107,59 @@ class StockObj():
                         return 0
                 else:
                         return 1
+        def KDBox(self,s_num,calday):
+                print "Evaluate KD value"
+
+                K=50.0
+                D=50.0
+                
+                #============Check date
+                if self.stockdata.has_key(s_num)==False:
+                        self.stockGet(s_num,3)
                         
+                list_key=self.stockdata[s_num].keys()
+                if(len(list_key)<calday):
+                        print "Calday is too long, list len=%d" % (len(list_key))
+                        return False
+        
+                #============Evalaute KD
+                count_day=0
+                while(len(list_key)>calday+count_day):
+                        max_stock=0
+                        min_stock=0xFFFF
+                        for i in range(calday):
+                                v=float(self.stockdata[s_num][list_key[i+count_day]])
+                                if v>max_stock:
+                                        max_stock=v
+                                if v<min_stock:
+                                        min_stock=v
+
+                        RSV=((self.stockdata[s_num][list_key[calday+count_day]]-min_stock)/(max_stock-min_stock))*100.0
+                        now_K=K*(2.0/3.0)+RSV*(1.0/3.0)
+                        now_D=D*(2.0/3.0)+now_K*(1.0/3.0)
+                        
+                        K=now_K
+                        D=now_D
+                        print "Date:%s, RSV=%s, K=%f D=%f (min=%f, max=%f)" % (list_key[calday+count_day], RSV, now_K, now_D, min_stock, max_stock)
+
+                        count_day=count_day+1
+        
+                        
+                
+
+
+
+
+
+
+
+
+
+
+
+
+                
 if __name__=="__main__":
         s=StockObj()
         
-        s.cal_BuyorNotbuy("2330","2017/01/07",1,15)  
+        s.KDBox("2330",9)  
