@@ -13,6 +13,9 @@ from collections import OrderedDict
 from grs import Stock
 from grs import TWSENo
 
+from sklearn.neural_network import MLPClassifier
+import sklearn as sk
+
 class StockObj():
         def __init__ (self):
                 print "Stock"
@@ -76,7 +79,7 @@ class StockObj():
                                 d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8])
                         if d<self.today:
                                 counter+=1
-                                print counter,d
+                                #print counter,d
                                 
                                 t=str(int(d.replace("/",""))+1)
                                 d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8])
@@ -84,8 +87,8 @@ class StockObj():
                         else:
                                 print "The counterday is too large=%s, limit count is %s" %(countday,counter)
                                 return False
-                print "Already Prepare Done, Start Evalaute..."
-                print "Start Date=%s, Stock=%s" % (date,self.stockdata[s_num][date])
+                #print "Already Prepare Done, Start Evalaute..."
+                #print "Start Date=%s, Stock=%s" % (date,self.stockdata[s_num][date])
 
                 #--------Eval
                 counter=0
@@ -97,7 +100,7 @@ class StockObj():
                                 d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8])
                         diff=float(self.stockdata[s_num][d])-float(self.stockdata[s_num][date])
                         if diff >= earn:
-                                print "Earn money at %s, value=%s" % (d,self.stockdata[s_num][d])
+                                #print "Earn money at %s, value=%s" % (d,self.stockdata[s_num][d])
                                 Earn_Flag=True
                         counter+=1
                         t=str(int(d.replace("/",""))+1)
@@ -106,8 +109,9 @@ class StockObj():
                         print "There is no Earn, so so not buy it"
                         return 0
                 else:
+                        print "Earn money"
                         return 1
-        def KDBox(self,s_num,calday):
+        def cal_KDBox(self,s_num,calday):
                 print "Evaluate KD value"
 
                 K=50.0
@@ -115,7 +119,7 @@ class StockObj():
                 
                 #============Check date
                 if self.stockdata.has_key(s_num)==False:
-                        self.stockGet(s_num,3)
+                        self.stockGet(s_num,12)
                         
                 list_key=self.stockdata[s_num].keys()
                 if(len(list_key)<calday):
@@ -140,26 +144,26 @@ class StockObj():
                         
                         K=now_K
                         D=now_D
-                        print "Date:%s, RSV=%s, K=%f D=%f (min=%f, max=%f)" % (list_key[calday+count_day], RSV, now_K, now_D, min_stock, max_stock)
+                        print "Date:%s CurStock=%f, RSV=%s, K=%f D=%f (min=%f, max=%f)" % (list_key[calday+count_day],self.stockdata[s_num][list_key[calday+count_day]], RSV, now_K, now_D, min_stock, max_stock),
 
-                        count_day=count_day+1
-        
+                        self.cal_BuyorNotbuy(s_num,list_key[calday+count_day],10,15)
                         
+                        count_day=count_day+1
+        def nn_Train(self):
+                X = np.array([[5,6],[1,2],[3,6],[8,9],[3,1]])
+                Y = np.array([30,2,18,72,3])
+                test_X = np.array([[11,2],[13,6],[8,9],[3,1]])
                 
-
-
-
-
-
-
-
-
-
-
-
-
+                mlp = MLPClassifier(    hidden_layer_sizes=(50,), max_iter=10, alpha=1e-4,
+                                        solver='sgd', verbose=10, tol=1e-4, random_state=1,
+                                        learning_rate_init=.1)
                 
+                mlp.fit(X,Y)
+                print mlp.predict(test_X)
+                        
 if __name__=="__main__":
         s=StockObj()
         
-        s.KDBox("2330",9)  
+        #s.cal_KDBox("2330",5)  
+
+        s.nn_Train()
