@@ -26,12 +26,22 @@ class StockObj():
                 
                 self.OutputData=OrderedDict()
                 self.InputData=OrderedDict()
-                
+
+                self.machine=OrderedDict()
+
         def showStocknum(self):
+                stock_all=[]
+                        
                 twse_no = TWSENo()
                 for i in twse_no.all_stock_no:
-                        print i,twse_no.searchbyno(i)[i]
-                
+                        tmp_dict={}
+                        tmp_dict["id"]=i
+                        tmp_dict["name"]=twse_no.searchbyno(i)[i]
+                        stock_all.append(tmp_dict)
+                        #print i,twse_no.searchbyno(i)[i]
+                        
+                return stock_all
+        
         def stockGet(self,s_num,month):
                 
                 stock = Stock(s_num,month)
@@ -146,7 +156,8 @@ class StockObj():
                                                                                
                 return self.InputData
                 
-        def nn_Train(self, Input, Output):
+        def nn_Train(self, Stock_id, Input, Output):
+                print "===========Stock %s============" % (Stock_id)
                 list_input_data=[]
                 list_output_data=[]
                 
@@ -175,7 +186,8 @@ class StockObj():
                 Test_Y = np.array(list_output_data[train_len:])
 
                 print "Training sample number=%d, Total sample = %d" % (train_len, sample_length)
-                #=============================================Learning
+
+                #=============================================Learning & Training
                 X = np.array([[5,6],[1,2],[3,6],[8,9],[3,1]])
                 Y = np.array([30,2,18,72,3])
                 test_X = np.array([[11,2],[13,6],[8,9],[3,1]])
@@ -190,26 +202,62 @@ class StockObj():
 
                 print "Buy count=",list_output_data.count(1)
                 print "Not Buy count=",list_output_data.count(0)
+
+                TrainScore = mlp.score(Train_X,Train_Y)
+                TestScore = mlp.score(Test_X,Test_Y)
+                print "Score Training=",TrainScore
+                print "Score Test=",TestScore
+
+                self.machine[Stock_id]=OrderedDict()
                 
-                print "Score Training=",mlp.score(Train_X,Train_Y)
-                print "Test Training=",mlp.score(Test_X,Test_Y)
+                self.machine[Stock_id]["machine"]=mlp
+                self.machine[Stock_id]["TrainScore"]=TrainScore
+                self.machine[Stock_id]["TestScore"]=TestScore
                 
-                '''
-                for coef in mlp.coefs_:
-                        print coef
-                '''
-                #print mlp.predict(X)
-                     
+        def predict(self, s_num, day):
+                if self.machine.has_key(s_num) == False:
+                        print "No this machine"
+                        return False
+                #=============================================Predict                
+                predict=[]
+                if self.InputData[s_num].has_key(day) == True:
+                        for k in self.InputData[s_num][day]:
+                                predict.append(Input[s_num][day][k])
+                        predict_array=np.array(predict)
+                        predict_array=predict_array.reshape(1, -1) # Trasfer to sigle sample pattern
+                        print self.machine[s_num]["machine"].predict(predict_array)
+                        return self.machine[s_num]["machine"].predict(predict_array)
+                else:
+                        print "There is no stock this day %s" % (day)
+                
 if __name__=="__main__":
         
         s=StockObj(get_month = 36)
 
-        Stock_id="2409"
-        Output = s.cal_BuyorNotbuy(Stock_id, earn=3, countday=14)
-        Input = s.cal_KDBox(Stock_id,9)
-                                                                               
-        s.nn_Train(Input, Output)
+        Buy_list=[]
+        stock_all_no=s.showStocknum()
+        
+        for stock_list in stock_all_no:
+                if len(stock_list['id'])!=4:
+                        continue
+                
+                Stock_id=stock_list['id']
+                
+                Input = s.cal_KDBox(Stock_id,9)
+                Output = s.cal_BuyorNotbuy(Stock_id, earn=10, countday=14)
+                                                                                       
+                s.nn_Train(Stock_id, Input, Output)
+                result=s.predict(Stock_id, "2017/02/23")
+                if result[0] == 1:
+                        Buy_list.append({"id":Stock_id})
 
+        for buy_stock in Buy_list:
+                print "These can buy"
+                print "Stock id %s, Training Score=%f, Testing Score=%f" % (buy_stock['id'],
+                                                                          s.machine[buy_stock['id']]["TrainScore"],
+                                                                          s.machine[buy_stock['id']]["TestScore"])
+                
+        
 
 
 
