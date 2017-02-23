@@ -72,75 +72,29 @@ class StockObj():
                 
                 #--------Check Data retrieve & parameter reasonable
                 if self.stockdata.has_key(s_num)==False:
-                        self.stockGet(s_num,self.get_month)
-                while self.stockdata[s_num].has_key(date)==False and date<self.today:
-                        t=str(int(date.replace("/",""))+1)
-                        date=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8])
-                if date>self.today:
-                        print "This date is future=>",date
-                        return False
+                        self.stockGet(s_num,self.get_month)                
                 
-                d=date  
-                while counter<countday:
-                        while self.stockdata[s_num].has_key(d)==False and d<self.today:
-                                t=str(int(d.replace("/",""))+1)
-                                d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8])
-                        if d<self.today:
-                                counter+=1
-                                #print counter,d
-                                
-                                t=str(int(d.replace("/",""))+1)
-                                d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8])
-                                
-                        else:
-                                #print "The counterday is too large=%s, limit count is %s" %(countday,counter)
-                                return False
-                list_key=self.stockdata[s_num].keys() 
-                #print "Already Prepare Done, Start Evalaute..."
-                #print "Start Date=%s, Stock=%s" % (date,self.stockdata[s_num][date])
-
+                list_key=self.stockdata[s_num].keys()
+                
                 #--------Eval
                 for i,date in enumerate(list_key):
-                        Earn_Flag==False
+                        Earn_Flag=False
                         if i+countday == len(list_key):
                                 break
                         
                         for d_index in range(i+1, i+countday+1):
                                 diff=float(self.stockdata[s_num][list_key[d_index]])-float(self.stockdata[s_num][date])
                                 if diff >= earn:
-                                        print "Earn money at %s, value=%s" % (d,self.stockdata[s_num][list_key[d_index]])
+                                        #print "Earn money at %s, value=%s" % (list_key[d_index], self.stockdata[s_num][list_key[d_index]])
                                         Earn_Flag=True
                                         
                         if Earn_Flag == True:
                                 self.InputData[s_num][date]=1
                         else:
                                 self.InputData[s_num][date]=0
+
                 return self.InputData
-                '''
-                inc_day=0
-                while(len(list_key)-countday > inc_day):
-                        counter=0
-                        d=date
-                        
-                        while counter<countday:
-                                while self.stockdata[s_num].has_key(d)==False and d<self.today:
-                                        t=str(int(d.replace("/",""))+1)
-                                        d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8])
-                                        
-                                diff=float(self.stockdata[s_num][d])-float(self.stockdata[s_num][date])
-                                if diff >= earn:
-                                        #print "Earn money at %s, value=%s" % (d,self.stockdata[s_num][d])
-                                        Earn_Flag=True
-                                counter+=1
-                                t=str(int(d.replace("/",""))+1)
-                                d=(t[:4])+"/"+(t[4:6])+"/"+(t[6:8]) 
-                        if Earn_Flag==False:
-                                #print "There is no Earn, so so not buy it"
-                                return "Not Buy"
-                        else:
-                                #print "Earn money"
-                                return "Buy"
-                '''
+                
         def cal_KDBox(self,s_num,calday):
                 print "Evaluate KD value"
 
@@ -187,16 +141,7 @@ class StockObj():
                                                                                "RSV"      : RSV,
                                                                                "K"        : now_K,
                                                                                "D"        : now_D,
-                                                                               "Avg"    : avg_v
-                        '''                                         }
-                        resultBuyorNot = self.cal_BuyorNotbuy(s_num,list_key[calday+count_day],10,15)                                     
-                        if resultBuyorNot == "Buy":
-                                #print "Buy"
-                                self.OutputData[s_num][list_key[calday+count_day]]=1
-                        elif resultBuyorNot == "Not Buy":
-                                #print "Not But"
-                                self.OutputData[s_num][list_key[calday+count_day]]=0
-                        '''
+                                                                               "Avg"    : avg_v   }
                         count_day=count_day+1
                                                                                
                 return self.InputData
@@ -223,12 +168,12 @@ class StockObj():
                 print mlp.predict(X)
                      
 if __name__=="__main__":
-        s=StockObj(get_month = 12)
+        s=StockObj(get_month = 2)
 
         
         Stock_id="2330"
 
-        Input = s.cal_BuyorNotbuy(s_num, earn=10, countday=15)
+        Input = s.cal_BuyorNotbuy(Stock_id, earn=4, countday=15)
         #Output=s.cal_KDBox(Stock_id,9)
                                                                                
         #s.nn_Train(Input, Output)
