@@ -51,11 +51,11 @@ class StockObj():
                 
                 #plt.plot(time_list,stock_list)
                 #plt.show()
-                
+                '''
                 for stock_num in self.stockdata:
                         for  d in self.stockdata[stock_num]:
                                 print d,self.stockdata[stock_num][d]
-                
+                '''
         def buyStock(self,s_num,date,count):    #("2330","2016/12/12",3)
                 if self.stockdata.has_key(s_num):
                         pay=float(self.stockdata[s_num][date])*count*1000
@@ -67,9 +67,9 @@ class StockObj():
                         
         def cal_BuyorNotbuy(self,s_num,earn,countday):
 
-                if self.InputData.has_key(s_num) == False:
-                        self.InputData[s_num]=OrderedDict()
-                
+                if self.OutputData.has_key(s_num) == False:
+                        self.OutputData[s_num]=OrderedDict()
+                        
                 #--------Check Data retrieve & parameter reasonable
                 if self.stockdata.has_key(s_num)==False:
                         self.stockGet(s_num,self.get_month)                
@@ -89,11 +89,11 @@ class StockObj():
                                         Earn_Flag=True
                                         
                         if Earn_Flag == True:
-                                self.InputData[s_num][date]=1
+                                self.OutputData[s_num][date]=1
                         else:
-                                self.InputData[s_num][date]=0
+                                self.OutputData[s_num][date]=0
 
-                return self.InputData
+                return self.OutputData
                 
         def cal_KDBox(self,s_num,calday):
                 print "Evaluate KD value"
@@ -101,8 +101,8 @@ class StockObj():
                 K=50.0
                 D=50.0
 
-                if self.OutputData.has_key(s_num) == False:
-                        self.OutputData[s_num]=OrderedDict()
+                if self.InputData.has_key(s_num) == False:
+                        self.InputData[s_num]=OrderedDict()
                         
                 #============Check date
                 if self.stockdata.has_key(s_num)==False:
@@ -136,7 +136,7 @@ class StockObj():
                         K=now_K
                         D=now_D
                         #print "Date:%s CurStock=%f, RSV=%s, K=%f D=%f (min=%f, max=%f)" % (list_key[calday+count_day],self.stockdata[s_num][list_key[calday+count_day]], RSV, now_K, now_D, min_stock, max_stock),
-                        
+                        self.InputData[s_num][list_key[calday+count_day]] = OrderedDict()
                         self.InputData[s_num][list_key[calday+count_day]]={    "CurStock" : self.stockdata[s_num][list_key[calday+count_day]],
                                                                                "RSV"      : RSV,
                                                                                "K"        : now_K,
@@ -146,13 +146,36 @@ class StockObj():
                                                                                
                 return self.InputData
                 
-        def nn_Train(self, inp_para, output):
-
+        def nn_Train(self, Input, Output):
+                list_input_data=[]
+                list_output_data=[]
+                
                 for day in Output[Stock_id]:
                         if Input[Stock_id].has_key(day) == True:
-                                print day, Input[Stock_id][day], Output[Stock_id][day]
 
-                
+                                #Get Input Data
+                                tmp_input=[]
+                                for k in Input[Stock_id][day]:
+                                        tmp_input.append(Input[Stock_id][day][k])
+                                list_input_data.append(tmp_input)
+
+                                #Get Ontput Data
+                                list_output_data.append(Output[Stock_id][day])
+                                
+                                #print day, Input[Stock_id][day], Output[Stock_id][day]
+                                                
+                sample_length=len(list_input_data)
+                train_len = sample_length*(2.0/3.0)
+                train_len = int(train_len)
+                                
+                Train_X = np.array(list_input_data[:train_len])
+                Train_Y = np.array(list_output_data[:train_len])
+
+                Test_X = np.array(list_input_data[train_len:])
+                Test_Y = np.array(list_output_data[train_len:])
+
+                print "Training sample number=%d, Total sample = %d" % (train_len, sample_length)
+                #=============================================Learning
                 X = np.array([[5,6],[1,2],[3,6],[8,9],[3,1]])
                 Y = np.array([30,2,18,72,3])
                 test_X = np.array([[11,2],[13,6],[8,9],[3,1]])
@@ -161,22 +184,31 @@ class StockObj():
                                         solver='lbfgs', verbose=10, tol=1e-6, random_state=1,
                                         learning_rate_init=.1)
                 
-                mlp.fit(X,Y)
-                print mlp.loss_
+                mlp.fit(Train_X,Train_Y)
+                
+                print "MLP Loss=",mlp.loss_
+
+                print "Buy count=",list_output_data.count(1)
+                print "Not Buy count=",list_output_data.count(0)
+                
+                print "Score Training=",mlp.score(Train_X,Train_Y)
+                print "Test Training=",mlp.score(Test_X,Test_Y)
+                
+                '''
                 for coef in mlp.coefs_:
                         print coef
-                print mlp.predict(X)
+                '''
+                #print mlp.predict(X)
                      
 if __name__=="__main__":
-        s=StockObj(get_month = 2)
-
         
-        Stock_id="2330"
+        s=StockObj(get_month = 36)
 
-        Input = s.cal_BuyorNotbuy(Stock_id, earn=4, countday=15)
-        #Output=s.cal_KDBox(Stock_id,9)
+        Stock_id="2409"
+        Output = s.cal_BuyorNotbuy(Stock_id, earn=3, countday=14)
+        Input = s.cal_KDBox(Stock_id,9)
                                                                                
-        #s.nn_Train(Input, Output)
+        s.nn_Train(Input, Output)
 
 
 
