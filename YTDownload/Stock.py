@@ -56,6 +56,7 @@ class StockObj():
                         time=datetime.strptime(time_obj,"%Y/%m/%d")
 
                         self.stockdata[s_num][time_obj]=i[6]
+                        
                         time_list.append(time)
                         stock_list.append(i[6])
                 
@@ -82,6 +83,7 @@ class StockObj():
                         
                 #--------Check Data retrieve & parameter reasonable
                 if self.stockdata.has_key(s_num)==False:
+                        
                         self.stockGet(s_num,self.get_month)                
                 
                 list_key=self.stockdata[s_num].keys()
@@ -125,6 +127,7 @@ class StockObj():
         
                 #============Evalaute KD
                 count_day=0
+                RSV=0
                 while(len(list_key)>calday+count_day):
                         max_stock=0
                         min_stock=0xFFFF
@@ -139,14 +142,20 @@ class StockObj():
                                         min_stock=v
 
                         avg_v = avg_v/calday
-                        RSV=((self.stockdata[s_num][list_key[calday+count_day]]-min_stock)/(max_stock-min_stock))*100.0
+                        
+                        if(max_stock!=min_stock):
+                                RSV=((self.stockdata[s_num][list_key[calday+count_day]]-min_stock)/(max_stock-min_stock))*100.0
+                        else:
+                                RSV=ex_RSV
+                        ex_RSV=RSV
                         now_K=K*(2.0/3.0)+RSV*(1.0/3.0)
                         now_D=D*(2.0/3.0)+now_K*(1.0/3.0)
                         
                         K=now_K
                         D=now_D
                         #print "Date:%s CurStock=%f, RSV=%s, K=%f D=%f (min=%f, max=%f)" % (list_key[calday+count_day],self.stockdata[s_num][list_key[calday+count_day]], RSV, now_K, now_D, min_stock, max_stock),
-                        self.InputData[s_num][list_key[calday+count_day]] = OrderedDict()
+                        if self.InputData[s_num].has_key(list_key[calday+count_day]) == False:
+                                self.InputData[s_num][list_key[calday+count_day]] = OrderedDict()
                         self.InputData[s_num][list_key[calday+count_day]]={    "CurStock" : self.stockdata[s_num][list_key[calday+count_day]],
                                                                                "RSV"      : RSV,
                                                                                "K"        : now_K,
@@ -155,7 +164,50 @@ class StockObj():
                         count_day=count_day+1
                                                                                
                 return self.InputData
-                
+        def cal_RSI(self, Stock_id, calday):
+                if self.InputData.has_key(Stock_id) == False:
+                        self.InputData[Stock_id]=OrderedDict()
+                        
+                #============Check date
+                if self.stockdata.has_key(Stock_id) == False:
+                        self.stockGet(Stock_id,self.get_month)
+                        
+                list_key = self.stockdata[Stock_id].keys()
+                if(len(list_key)<calday):
+                        print "Calday is too long, list len=%d" % (len(list_key))
+                        return False
+
+                #=================
+                count=0
+                while(len(list_key)>calday+count):
+                        pos_sum = 0
+                        pos_per = 0
+                        neg_sum = 0
+                        neg_per = 0
+                        for i in range(calday):
+                                val1=self.stockdata[Stock_id][list_key[i+count]]
+                                val2=self.stockdata[Stock_id][list_key[i+count+1]]
+                                
+                                if val2 >= val1:
+                                        pos_sum += val2 - val1
+                                else:
+                                        neg_sum += val1 - val2
+                                                                
+                        pos_per = float(pos_sum) / float(calday)
+                        neg_per = float(neg_sum) / float(calday)
+                                                
+                        if self.InputData[Stock_id].has_key(list_key[calday+count]) == False:
+                                self.InputData[Stock_id][list_key[calday+count]] = OrderedDict()
+                        if pos_per!=0 or neg_per!=0:
+                                RSI = pos_per/(pos_per + neg_per)
+                        else:
+                                RSI=0
+                        
+                        self.InputData[Stock_id][list_key[calday+count]]={      "Pos_per":pos_per,
+                                                                                "Neg_per":neg_per,
+                                                                                "RSI"    :RSI}
+                        count+=1
+                return self.InputData
         def nn_Train(self, Stock_id, Input, Output):
                 print "===========Stock %s============" % (Stock_id)
                 list_input_data=[]
@@ -229,9 +281,7 @@ class StockObj():
                         return self.machine[s_num]["machine"].predict(predict_array)
                 else:
                         print "There is no stock this day %s" % (day)
-                
-if __name__=="__main__":
-        
+def KD_test():
         s=StockObj(get_month = 36)
 
         Buy_list=[]
@@ -256,12 +306,16 @@ if __name__=="__main__":
                 print "Stock id %s, Training Score=%f, Testing Score=%f" % (buy_stock['id'],
                                                                           s.machine[buy_stock['id']]["TrainScore"],
                                                                           s.machine[buy_stock['id']]["TestScore"])
-                
+             
+def RSI_test():
+        s=StockObj(get_month = 1)
+        Stock_id="2330"
         
+        print s.cal_RSI(Stock_id, 6)
 
-
-
-
-
+if __name__=="__main__":
+        
+    RSI_test()    
+        
 
 
