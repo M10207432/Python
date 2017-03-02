@@ -16,6 +16,18 @@ from grs import TWSENo
 from sklearn.neural_network import MLPClassifier
 import sklearn as sk
 
+'''===========================
+        Log Decorate
+==========================='''
+def showlog(func):
+        def d_f(*argv):
+                result=func(*argv)
+                for i in result:
+                        print i
+                
+                return result
+        return d_f
+
 class StockObj():
         def __init__ (self, get_month):
                 print "Stock"
@@ -29,6 +41,7 @@ class StockObj():
 
                 self.machine=OrderedDict()
 
+        
         def showStocknum(self):
                 stock_all=[]
                         
@@ -62,11 +75,12 @@ class StockObj():
                 
                 #plt.plot(time_list,stock_list)
                 #plt.show()
-                '''
-                for stock_num in self.stockdata:
-                        for  d in self.stockdata[stock_num]:
-                                print d,self.stockdata[stock_num][d]
-                '''
+                
+                #for stock_num in self.stockdata:
+                #        for  d in self.stockdata[stock_num]:
+                #                print d,self.stockdata[stock_num][d]
+                
+                
         def buyStock(self,s_num,date,count):    #("2330","2016/12/12",3)
                 if self.stockdata.has_key(s_num):
                         pay=float(self.stockdata[s_num][date])*count*1000
@@ -106,9 +120,8 @@ class StockObj():
                                 self.OutputData[s_num][date]=0
 
                 return self.OutputData
-                
+
         def cal_KDBox(self,s_num,calday):
-                print "Evaluate KD value"
 
                 K=50.0
                 D=50.0
@@ -122,7 +135,7 @@ class StockObj():
                         
                 list_key=self.stockdata[s_num].keys()
                 if(len(list_key)<calday):
-                        print "Calday is too long, list len=%d" % (len(list_key))
+                        #yield "Calday is too long, list len=%d" % (len(list_key))
                         return False
         
                 #============Evalaute KD
@@ -153,7 +166,9 @@ class StockObj():
                         
                         K=now_K
                         D=now_D
-                        #print "Date:%s CurStock=%f, RSV=%s, K=%f D=%f (min=%f, max=%f)" % (list_key[calday+count_day],self.stockdata[s_num][list_key[calday+count_day]], RSV, now_K, now_D, min_stock, max_stock),
+
+                        #yield "Date:%s CurStock=%f, RSV=%s, K=%f D=%f (min=%f, max=%f)" % (list_key[calday+count_day],self.stockdata[s_num][list_key[calday+count_day]], RSV, now_K, now_D, min_stock, max_stock),
+
                         if self.InputData[s_num].has_key(list_key[calday+count_day]) == False:
                                 self.InputData[s_num][list_key[calday+count_day]] = OrderedDict()
                                 
@@ -166,12 +181,13 @@ class StockObj():
                         count_day=count_day+1
                                                                                
                 return self.InputData
+        
         def cal_RSIBox(self, Stock_id, calday):
                 if self.InputData.has_key(Stock_id) == False:
                         self.InputData[Stock_id]=OrderedDict()
                         
                 #============Check date
-                if self.stockdata.has_key(Stock_id) == False:
+                if self.stockdata.has_key(Stock_id) == False:                        
                         self.stockGet(Stock_id,self.get_month)
                         
                 list_key = self.stockdata[Stock_id].keys()
@@ -211,9 +227,9 @@ class StockObj():
                         
                         count+=1
                 return self.InputData
-        
+       
         def nn_Train(self, Stock_id, Input, Output):
-                print "===========Stock %s============" % (Stock_id)
+                #yield "===========Stock %s============" % (Stock_id)
                 list_input_data=[]
                 list_output_data=[]
                 
@@ -274,18 +290,19 @@ class StockObj():
                 predict=[]
                 if self.InputData[s_num].has_key(day) == True:
                         for k in self.InputData[s_num][day]:
-                                predict.append(Input[s_num][day][k])
+                                predict.append(self.InputData[s_num][day][k])
                         predict_array=np.array(predict)
                         predict_array=predict_array.reshape(1, -1) # Trasfer to sigle sample pattern
                         print self.machine[s_num]["machine"].predict(predict_array)
                         return self.machine[s_num]["machine"].predict(predict_array)
                 else:
                         print "There is no stock this day %s" % (day)
+
 def main():
         s=StockObj(get_month = 36)
 
         Buy_list=[]
-        #stock_all_no=s.showStocknum()
+        stock_all_no=[{"id":'2330'},{"id":"2450"}]
         
         for stock_list in stock_all_no:
                 
@@ -320,8 +337,8 @@ def RSI_test():
         print s.InputData
 
 if __name__=="__main__":
-        
-    main()    
+        main()
+        #RSI_test()    
         
 
 
