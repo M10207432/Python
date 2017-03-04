@@ -141,6 +141,8 @@ class StockObj():
                 #============Evalaute KD
                 count_day=0
                 RSV=0
+                ex_RSV=0
+                
                 while(len(list_key)>calday+count_day):
                         max_stock=0
                         min_stock=0xFFFF
@@ -309,7 +311,7 @@ class ClassifyObj():
                         print "There is no stock this day %s" % (day)
 
 def main():
-	training_month = 36
+	training_month = 12
 	predict_date = "2017/03/03"
 	RSI_caldate = 9
 	KD_caldate = 9
@@ -319,7 +321,7 @@ def main():
 	Buy_list=[]
 	stock_all_no=[]
 
-	with open("test.txt",'rb') as stockfile:
+	with open("Stock_id.txt",'rb') as stockfile:
 		stock_list=stockfile.read().split()
 		for i in stock_list:
 			if len(i) == 4:
@@ -351,12 +353,12 @@ def main():
 			Buy_list.append({"id":Stock_id})
 
         #=========================================================Show Result
-	result_file = open(re.sub("/", "-", predict_date)+"txt",'wb')
+	result_file = open(re.sub("/", "-", predict_date)+".txt",'wb')
 	for buy_stock in Buy_list:
 		print "These can buy"
 		print "Stock id %s, Training Score=%f, Testing Score=%f" % (    buy_stock['id'],
-																			classifier_machine.machine[buy_stock['id']]["TrainScore"],
-																			classifier_machine.machine[buy_stock['id']]["TestScore"])
+                                                                                classifier_machine.machine[buy_stock['id']]["TrainScore"],
+                                                                                classifier_machine.machine[buy_stock['id']]["TestScore"])
 		result_file.write(buy_stock['id']+',')
 		result_file.write(str(classifier_machine.machine[buy_stock['id']]["TrainScore"])+',')
 		result_file.write(str(classifier_machine.machine[buy_stock['id']]["TestScore"])+'\n')
