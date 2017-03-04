@@ -302,8 +302,13 @@ def main():
         s=StockObj(get_month = 36)
 
         Buy_list=[]
-        stock_all_no=[{"id":'2330'},{"id":"2450"}]
-        
+        stock_all_no=[]
+
+        with open("Stock_id.txt",'rb') as stockfile:
+                stock_list=stockfile.read().split("\n")
+                for i in stock_list:
+                        stock_all_no.append({"id":i})
+                
         for stock_list in stock_all_no:
                 
                 Stock_id=stock_list['id']
@@ -326,19 +331,9 @@ def main():
                 print "Stock id %s, Training Score=%f, Testing Score=%f" % (buy_stock['id'],
                                                                           s.machine[buy_stock['id']]["TrainScore"],
                                                                           s.machine[buy_stock['id']]["TestScore"])
-             
-def RSI_test():
-        s=StockObj(get_month = 3)
-        Stock_id="2330"
-        
-        s.cal_RSIBox(Stock_id, 6)
-        s.cal_KDBox(Stock_id, 9)
-
-        print s.InputData
-
+       
 if __name__=="__main__":
         main()
-        #RSI_test()    
         
 
 
