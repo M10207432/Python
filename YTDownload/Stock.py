@@ -228,110 +228,140 @@ class StockObj():
                         count+=1
                 return self.InputData
        
-        def nn_Train(self, Stock_id, Input, Output):
-                #yield "===========Stock %s============" % (Stock_id)
+class ClassifyObj():
+        
+        def __init__ (self, Input, Output):
+                print "Classifier"
+
+                self.InputData=Input
+                self.OutputData=Output
+
+                self.machine=OrderedDict()
+
+        def nn_Train(self, Stock_id):
+                print  "===========Stock %s============" % (Stock_id)
                 list_input_data=[]
                 list_output_data=[]
-                
-                for day in Output[Stock_id]:
-                        if Input[Stock_id].has_key(day) == True:
+			
+                for day in self.OutputData[Stock_id]:
+                        if self.InputData[Stock_id].has_key(day) == True:
 
-                                #Get Input Data
+				#Get Input Data
                                 tmp_input=[]
-                                for k in Input[Stock_id][day]:
-                                        tmp_input.append(Input[Stock_id][day][k])
+                                for k in self.InputData[Stock_id][day]:
+                                        tmp_input.append(self.InputData[Stock_id][day][k])
                                 list_input_data.append(tmp_input)
 
-                                #Get Ontput Data
-                                list_output_data.append(Output[Stock_id][day])
-                                
-                                #print day, Input[Stock_id][day], Output[Stock_id][day]
-                                                
+				#Get Ontput Data
+                                list_output_data.append(self.OutputData[Stock_id][day])
+							
+				#print day, self.InputData[Stock_id][day], self.OutputData[Stock_id][day]
+											
                 sample_length=len(list_input_data)
                 train_len = sample_length*(2.0/3.0)
                 train_len = int(train_len)
-                                
+						
                 Train_X = np.array(list_input_data[:train_len])
                 Train_Y = np.array(list_output_data[:train_len])
 
                 Test_X = np.array(list_input_data[train_len:])
                 Test_Y = np.array(list_output_data[train_len:])
 
-                print "Training sample number=%d, Total sample = %d" % (train_len, sample_length)
+		#print "Training sample number=%d, Total sample = %d" % (train_len, sample_length)
 
-                #=============================================Learning & Training               
+		#=============================================Learning & Training               
                 mlp = MLPClassifier(    hidden_layer_sizes=(20,20), max_iter=100, alpha=1e-4,
-                                        solver='lbfgs', verbose=10, tol=1e-6, random_state=1,
-                                        learning_rate_init=.1)
-                
+									solver='lbfgs', verbose=10, tol=1e-6, random_state=1,
+									learning_rate_init=.1)
+			
                 mlp.fit(Train_X,Train_Y)
-                
-                print "MLP Loss=",mlp.loss_
+			
+		#print "MLP Loss=",mlp.loss_
 
-                print "Buy count=",list_output_data.count(1)
-                print "Not Buy count=",list_output_data.count(0)
+		#print "Buy count=",list_output_data.count(1)
+		#print "Not Buy count=",list_output_data.count(0)
 
                 TrainScore = mlp.score(Train_X,Train_Y)
                 TestScore = mlp.score(Test_X,Test_Y)
-                print "Score Training=",TrainScore
-                print "Score Test=",TestScore
+		#print "Score Training=",TrainScore
+		#print "Score Test=",TestScore
 
                 self.machine[Stock_id]=OrderedDict()
-                
+			
                 self.machine[Stock_id]["machine"]=mlp
                 self.machine[Stock_id]["TrainScore"]=TrainScore
                 self.machine[Stock_id]["TestScore"]=TestScore
                 
-        def predict(self, s_num, day):
-                if self.machine.has_key(s_num) == False:
+        def predict(self, Stock_id, day):
+                if self.machine.has_key(Stock_id) == False:
                         print "No this machine"
                         return False
-                #=============================================Predict                
+		#=============================================Predict                
                 predict=[]
-                if self.InputData[s_num].has_key(day) == True:
-                        for k in self.InputData[s_num][day]:
-                                predict.append(self.InputData[s_num][day][k])
+                if self.InputData[Stock_id].has_key(day) == True:
+                        for k in self.InputData[Stock_id][day]:
+                                predict.append(self.InputData[Stock_id][day][k])
                         predict_array=np.array(predict)
                         predict_array=predict_array.reshape(1, -1) # Trasfer to sigle sample pattern
-                        print self.machine[s_num]["machine"].predict(predict_array)
-                        return self.machine[s_num]["machine"].predict(predict_array)
+                        print self.machine[Stock_id]["machine"].predict(predict_array)
+                        return self.machine[Stock_id]["machine"].predict(predict_array)
                 else:
                         print "There is no stock this day %s" % (day)
 
 def main():
-        s=StockObj(get_month = 36)
+	training_month = 36
+	predict_date = "2017/03/03"
+	RSI_caldate = 9
+	KD_caldate = 9
 
-        Buy_list=[]
-        stock_all_no=[]
+	s=StockObj(get_month = training_month)
 
-        with open("Stock_id.txt",'rb') as stockfile:
-                stock_list=stockfile.read().split("\n")
-                for i in stock_list:
-                        stock_all_no.append({"id":i})
-                
-        for stock_list in stock_all_no:
-                
-                Stock_id=stock_list['id']
+	Buy_list=[]
+	stock_all_no=[]
 
-                #Input & Output
-                s.cal_RSIBox(Stock_id, 9)
-                s.cal_KDBox(Stock_id, 9)
-                Input = s.InputData
-                
-                Output = s.cal_BuyorNotbuy(Stock_id, earn=10, countday=14)
+	with open("test.txt",'rb') as stockfile:
+		stock_list=stockfile.read().split()
+		for i in stock_list:
+			if len(i) == 4:
+				stock_all_no.append({"id":i})
 
-                #Training                                                        
-                s.nn_Train(Stock_id, Input, Output)
-                result=s.predict(Stock_id, "2017/02/23")
-                if result[0] == 1:
-                        Buy_list.append({"id":Stock_id})
+	#=========================================================Stock Info set (Input/Output)						
+	for stock_list in stock_all_no:
+			
+		Stock_id=stock_list['id']
+		print "Get %s Stock Data" % (Stock_id)
+		#Input & Output
+		s.cal_RSIBox(Stock_id, 9)
+		s.cal_KDBox(Stock_id, 9)
 
-        for buy_stock in Buy_list:
-                print "These can buy"
-                print "Stock id %s, Training Score=%f, Testing Score=%f" % (buy_stock['id'],
-                                                                          s.machine[buy_stock['id']]["TrainScore"],
-                                                                          s.machine[buy_stock['id']]["TestScore"])
-       
+		Input = s.InputData	
+		Output = s.cal_BuyorNotbuy(Stock_id, earn=10, countday=14)
+
+
+        #=========================================================Classifier Training       
+	classifier_machine = ClassifyObj(s.InputData, s.OutputData)
+	for stock_list in stock_all_no:
+		Stock_id=stock_list['id']
+		#Training
+		classifier_machine.nn_Train(Stock_id)
+
+		#Predict for date
+		result=classifier_machine.predict(Stock_id, predict_date)
+		if result[0] == 1:
+			Buy_list.append({"id":Stock_id})
+
+        #=========================================================Show Result
+	result_file = open(re.sub("/", "-", predict_date)+"txt",'wb')
+	for buy_stock in Buy_list:
+		print "These can buy"
+		print "Stock id %s, Training Score=%f, Testing Score=%f" % (    buy_stock['id'],
+																			classifier_machine.machine[buy_stock['id']]["TrainScore"],
+																			classifier_machine.machine[buy_stock['id']]["TestScore"])
+		result_file.write(buy_stock['id']+',')
+		result_file.write(str(classifier_machine.machine[buy_stock['id']]["TrainScore"])+',')
+		result_file.write(str(classifier_machine.machine[buy_stock['id']]["TestScore"])+'\n')
+	result_file.close()
+        
 if __name__=="__main__":
         main()
         
