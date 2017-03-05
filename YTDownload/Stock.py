@@ -354,12 +354,14 @@ def main():
 
         #=========================================================Show Result
 	result_file = open(re.sub("/", "-", predict_date)+".txt",'wb')
+	result_file.write(predict_date+'\n')
 	for buy_stock in Buy_list:
 		print "These can buy"
 		print "Stock id %s, Training Score=%f, Testing Score=%f" % (    buy_stock['id'],
                                                                                 classifier_machine.machine[buy_stock['id']]["TrainScore"],
                                                                                 classifier_machine.machine[buy_stock['id']]["TestScore"])
 		result_file.write(buy_stock['id']+',')
+		result_file.write(str(s.stockdata[buy_stock['id']][predict_date])+',')
 		result_file.write(str(classifier_machine.machine[buy_stock['id']]["TrainScore"])+',')
 		result_file.write(str(classifier_machine.machine[buy_stock['id']]["TestScore"])+'\n')
 	result_file.close()
