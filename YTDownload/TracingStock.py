@@ -6,6 +6,7 @@ from numpy import *
 from collections import OrderedDict
 from grs import Stock
 from grs import TWSENo
+import re
 
 import cPickle as pickle
 import matplotlib.pyplot as plt
@@ -107,9 +108,18 @@ def TracingFlow(_tracingfile):
   Tracing(buy_date, buylist)
   
 def main():
-  tracing_file = '2017-03-03.txt'
 
-  TracingFlow(tracing_file)
+  tracing_file_list = []
+  remachine = re.compile("(\d+-\d+-\d+.txt)")
+  cur_dirlist = os.listdir('.')
+  for f in cur_dirlist:
+    g=remachine.match(f)
+    if g != None:
+      tracing_file_list.append(g.group(0))
+  
+  for tracing_file in tracing_file_list:
+    print "================Tracing ",tracing_file
+    TracingFlow(tracing_file)
   
 
 if __name__=="__main__":
