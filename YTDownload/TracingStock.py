@@ -22,11 +22,11 @@ def readStockdata(filename):
   
   for i,row in enumerate(rowlist):
     if i==0:
-      buy_date = row 
+      buy_date = row.replace("/","-")
     if i != 0 and row.strip():
       result_list.append(map(eval, row.split(',')))
   
-  return buy_date,mat(result_list)
+  return buy_date, mat(result_list)
 
 
 def calProb(stockmap):
@@ -47,43 +47,72 @@ def calProb(stockmap):
 
 def Tracing(buy_date, stockmap):  #row[Stock_id, Stock dollar $, Training Probility, Test Probility]
 
-  Earn=0
-  draw_x=[]
-  draw_y=[]
-  draw_yn=[]
+  Earn = 0
+  today = ""
+  show_list=[]
+  
+  filename="Tracing_"+buy_date.replace("-","")+'.txt'
+  
+  fd = os.open(filename, os.O_RDWR | os.O_CREAT)
+  os.close(fd)
   
   for row in stockmap:
     stock_id = str(int(row[0,0]))
     s = Stock(stock_id,1)
 
-    
     nowlist = s.raw[len(s.raw) - 1]
+    
     now_dollar = float(nowlist[6])
     buy_dollar = float(row[0,1])
     diff = (now_dollar - buy_dollar)
+
+    log ="%s %s, %f (Buy:%f)=>%f" % (stock_id, s.info[1], now_dollar, buy_dollar, diff)
+    show_list.append(log+"\n")
     print "Stock %s %s, %f (Buy:%f)=>%f" % (stock_id, s.info[1], now_dollar, buy_dollar, diff)
     
     Earn = Earn + diff
-    
-    draw_x.append(stock_id)
-    draw_y.append(buy_dollar)
-    draw_yn.append(now_dollar)
+
+    if today == '':
+      today = nowlist[0]
+  print today
   print "Now Stock Earn=%f !!!" % (Earn)
   print "Now $ Earn=%f !!!" % (Earn*1000)
-  '''
-  fig = plt.figure()
-  ax = fig.add_subplot(111)
-  ax.scatter(draw_x, draw_yn, c='blue',marker='o')
-  ax.scatter(draw_x, draw_y, c='green',marker='o')
-  ax.plot()
-  plt.show()
-  '''
-def main():
-  buy_date, stockmap = readStockdata('2017-03-03.txt')
+
+  #============================================Write Tracing Data
+  wrt_flag = 1
+  f = open(filename,'rb')
+  for i in f.readlines():
+    if i.find(today) >= 0:
+      wrt_flag = 0
+    
+  if wrt_flag == 1:
+    
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+    
+    f = open(filename,'ab')
+    #-------------------------
+    f.write("==========================="+today+"==========================="+'')
+    f.write(str(Earn)+'\n')
+    for data in show_list:
+      data.decode('utf-8')
+      f.write(data)
+
+    #-------------------------
+    f.close()
+
+def TracingFlow(_tracingfile):
+  buy_date, stockmap = readStockdata(_tracingfile)
   buylist = calProb(stockmap)
   Tracing(buy_date, buylist)
+  
+def main():
+  tracing_file = '2017-03-03.txt'
+
+  TracingFlow(tracing_file)
   
 
 if __name__=="__main__":
   main()
+  
 

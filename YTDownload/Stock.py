@@ -309,14 +309,9 @@ class ClassifyObj():
                         return self.machine[Stock_id]["machine"].predict(predict_array)
                 else:
                         print "There is no stock this day %s" % (day)
-
-def main():
-	training_month = 12
-	predict_date = "2017/03/03"
-	RSI_caldate = 9
-	KD_caldate = 9
-
-	s=StockObj(get_month = training_month)
+def StockFlow(_trainingmonth, _predictdate, _RSIcaldate, _KDcaldate):
+        
+        s=StockObj(get_month = training_month)
 
 	Buy_list=[]
 	stock_all_no=[]
@@ -365,6 +360,17 @@ def main():
 		result_file.write(str(classifier_machine.machine[buy_stock['id']]["TrainScore"])+',')
 		result_file.write(str(classifier_machine.machine[buy_stock['id']]["TestScore"])+'\n')
 	result_file.close()
+	
+def main():
+	training_month = 12
+	predict_date = "2017/03/09"
+	RSI_caldate = 9
+	KD_caldate = 9
+
+	StockFlow(_trainingmonth = training_month,
+                  _predictdate = predict_date,
+                  _RSIcaldate = RSI_caldate,
+                  _KDcaldate = KD_caldate)
         
 if __name__=="__main__":
         main()
