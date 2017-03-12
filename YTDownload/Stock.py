@@ -14,6 +14,14 @@ from grs import Stock
 from grs import TWSENo
 
 from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+
 import sklearn as sk
 
 '''===========================
@@ -240,7 +248,30 @@ class ClassifyObj():
 
                 self.machine=OrderedDict()
 
-        def nn_Train(self, Stock_id):
+                self.c_names = ["Nearest Neighbor",
+                         "Linear SVM", "RBF SVM", "Decision SVM",
+                         "Decision Tree",
+                         "Random Forest",
+                         "AdaBoost",
+                         "Naive Bayes",
+                         "Linear Discriminant Annlysis",
+                         "Quadratic Discriminant Analysis"]
+                self.classifiers = [KNeighborsClassifier( 3 ),
+                               SVC( kernel ="linear", C = 0.025 ), SVC(gamma = 2, C = 1),
+                               DecisionTreeClassifier( max_depth = 5),
+                               RandomForestClassifier( max_depth = 5, n_estimators = 10, max_features = 1),
+                               AdaBoostClassifier(),
+                               GaussianNB(),
+                               LinearDiscriminantAnalysis(),
+                               QuadraticDiscriminantAnalysis()]
+                
+        def training_each_classifiers(self, Stock_id):
+                for n, mlp in zip(self.c_names, self.classifiers):
+                        print n
+                        self.Train(Stock_id, mlp)
+
+                
+        def Train(self, Stock_id, mlp=None):
                 print  "===========Stock %s============" % (Stock_id)
                 list_input_data=[]
                 list_output_data=[]
@@ -271,8 +302,9 @@ class ClassifyObj():
 
 		#print "Training sample number=%d, Total sample = %d" % (train_len, sample_length)
 
-		#=============================================Learning & Training               
-                mlp = MLPClassifier(    hidden_layer_sizes=(20,20), max_iter=100, alpha=1e-4,
+		#=============================================Learning & Training
+                if mlp == None:
+                        mlp = MLPClassifier(    hidden_layer_sizes=(20,20), max_iter=100, alpha=1e-4,
 									solver='lbfgs', verbose=10, tol=1e-6, random_state=1,
 									learning_rate_init=.1)
 			
@@ -285,8 +317,8 @@ class ClassifyObj():
 
                 TrainScore = mlp.score(Train_X,Train_Y)
                 TestScore = mlp.score(Test_X,Test_Y)
-		#print "Score Training=",TrainScore
-		#print "Score Test=",TestScore
+                print "Score Training=",TrainScore
+                print "Score Test=",TestScore
 
                 self.machine[Stock_id]=OrderedDict()
 			
@@ -340,26 +372,29 @@ def StockFlow(_trainingmonth, _predictdate, _RSIcaldate, _KDcaldate):
                         Output = s.cal_BuyorNotbuy(Stock_id, earn=10, countday=14)
 
 
-			#=========================================================Classifier Training       
+		#=========================================================Classifier Training       
                 classifier_machine = ClassifyObj(s.InputData, s.OutputData)
+                r = all(value == 0 for value in s.OutputData.values())
+                print r
+                        
                 for stock_list in stock_all_no:
                         Stock_id=stock_list['id']
 			#Training
-                        classifier_machine.nn_Train(Stock_id)
-
+                        #classifier_machine.Train(Stock_id)
+                        classifier_machine.training_each_classifiers(Stock_id)
 			#Predict for date
                         result=classifier_machine.predict(Stock_id, predict_date)
                         if result[0] == 1:
                                 Buy_list.append({"id":Stock_id})
 
-			#=========================================================Show Result
+		#=========================================================Show Result
                 result_file = open(re.sub("/", "-", predict_date)+".txt",'wb')
                 result_file.write(predict_date+'\n')
                 for buy_stock in Buy_list:
                         print "These can buy"
                         print "Stock id %s, Training Score=%f, Testing Score=%f" % (    buy_stock['id'],
-																					classifier_machine.machine[buy_stock['id']]["TrainScore"],
-																					classifier_machine.machine[buy_stock['id']]["TestScore"])
+											classifier_machine.machine[buy_stock['id']]["TrainScore"],
+											classifier_machine.machine[buy_stock['id']]["TestScore"])
                         result_file.write(buy_stock['id']+',')
                         result_file.write(str(s.stockdata[buy_stock['id']][predict_date])+',')
                         result_file.write(str(classifier_machine.machine[buy_stock['id']]["TrainScore"])+',')
@@ -368,11 +403,10 @@ def StockFlow(_trainingmonth, _predictdate, _RSIcaldate, _KDcaldate):
 	
 def main():
 	training_month = 12
-	predict_date = "2017/03/08"
+	predict_date = "2017/03/03"
 	RSI_caldate = 9
 	KD_caldate = 9
 
-        
 	StockFlow(_trainingmonth = training_month,
                   _predictdate = predict_date,
                   _RSIcaldate = RSI_caldate,
