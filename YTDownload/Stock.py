@@ -266,13 +266,22 @@ class ClassifyObj():
                                QuadraticDiscriminantAnalysis()]
                 
         def training_each_classifiers(self, Stock_id):
+                done_flag = 0
                 for n, mlp in zip(self.c_names, self.classifiers):
-                        print n
-                        self.Train(Stock_id, mlp)
-
-                
-        def Train(self, Stock_id, mlp=None):
-                print  "===========Stock %s============" % (Stock_id)
+                        print "==================%s===============" % (n)
+                        try:
+                                fitting_result = self.Train(Stock_id, mlp, n)
+                                if fitting_result == 0:
+                                        done_flag = 0
+                                        print "No need to train"
+                                        break
+                                elif fitting_result == 1:
+                                        done_flag = 1
+                        except:
+                                print "==========Error========%s" % (n)
+                return done_flag
+        
+        def Train(self, Stock_id, mlp = None, mlp_name = None):
                 list_input_data=[]
                 list_output_data=[]
 			
@@ -287,9 +296,9 @@ class ClassifyObj():
 
 				#Get Ontput Data
                                 list_output_data.append(self.OutputData[Stock_id][day])
-							
+						
 				#print day, self.InputData[Stock_id][day], self.OutputData[Stock_id][day]
-											
+									
                 sample_length=len(list_input_data)
                 train_len = sample_length*(2.0/3.0)
                 train_len = int(train_len)
@@ -301,13 +310,16 @@ class ClassifyObj():
                 Test_Y = np.array(list_output_data[train_len:])
 
 		#print "Training sample number=%d, Total sample = %d" % (train_len, sample_length)
-
+                if len(list_output_data) == list_output_data.count(0) or len(list_output_data) == list_output_data.count(0):
+                        return 0
 		#=============================================Learning & Training
                 if mlp == None:
-                        mlp = MLPClassifier(    hidden_layer_sizes=(20,20), max_iter=100, alpha=1e-4,
+                        mlp = MLPClassifier( hidden_layer_sizes=(20,20), max_iter=100, alpha=1e-4,
 									solver='lbfgs', verbose=10, tol=1e-6, random_state=1,
 									learning_rate_init=.1)
-			
+                if mlp_name == None:
+                        mlp_name = "Neural Network"
+                        
                 mlp.fit(Train_X,Train_Y)
 			
 		#print "MLP Loss=",mlp.loss_
@@ -321,15 +333,38 @@ class ClassifyObj():
                 print "Score Test=",TestScore
 
                 self.machine[Stock_id]=OrderedDict()
-			
-                self.machine[Stock_id]["machine"]=mlp
-                self.machine[Stock_id]["TrainScore"]=TrainScore
-                self.machine[Stock_id]["TestScore"]=TestScore
+                self.machine[Stock_id][mlp_name] = OrderedDict()
                 
-        def predict(self, Stock_id, day):
+                self.machine[Stock_id][mlp_name]["machine"]=mlp
+                self.machine[Stock_id][mlp_name]["TrainScore"]=TrainScore
+                self.machine[Stock_id][mlp_name]["TestScore"]=TestScore
+
+                return 1
+        
+        def predict_each_classifiers(self, Stock_id, day):
+                Buy_list = []
+                buy_flag = 0
+                for n, mlp in zip(self.c_names, self.classifiers):
+                        print "==================%s===============" % (n)
+                        try:
+                                predict_result = self.predict(Stock_id, day, n)
+                                if predict_result[0] == 1:
+                                        buy_flag = 1
+                                        Buy_list.append({"id":Stock_id})
+                        except:
+                                print "==========Error========%s" % (n)
+                
+                return Buy_list
+        
+        def predict(self, Stock_id, day, mlp_name = None):
                 if self.machine.has_key(Stock_id) == False:
+                        print "No this Stock Data"
+                        return False
+                if self.machine[Stock_id].has_key(mlp_name) == False:
                         print "No this machine"
                         return False
+                if mlp_name == None:
+                        mlp_name = "Neural Network"
 		#=============================================Predict                
                 predict=[]
                 if self.InputData[Stock_id].has_key(day) == True:
@@ -337,10 +372,11 @@ class ClassifyObj():
                                 predict.append(self.InputData[Stock_id][day][k])
                         predict_array=np.array(predict)
                         predict_array=predict_array.reshape(1, -1) # Trasfer to sigle sample pattern
-                        print self.machine[Stock_id]["machine"].predict(predict_array)
-                        return self.machine[Stock_id]["machine"].predict(predict_array)
+                        print self.machine[Stock_id][mlp_name]["machine"].predict(predict_array)
+                        return self.machine[Stock_id][mlp_name]["machine"].predict(predict_array)
                 else:
                         print "There is no stock this day %s" % (day)
+                        
 def StockFlow(_trainingmonth, _predictdate, _RSIcaldate, _KDcaldate):
         
         training_month = _trainingmonth
@@ -348,7 +384,7 @@ def StockFlow(_trainingmonth, _predictdate, _RSIcaldate, _KDcaldate):
         RSI_caldate = _RSIcaldate
         KD_caldate = _KDcaldate
 	
-        s=StockObj(get_month = training_month)
+        s=StockObj(get_month = training_month) #Get stock raw data
 
         Buy_list=[]
         stock_all_no=[]
@@ -372,21 +408,28 @@ def StockFlow(_trainingmonth, _predictdate, _RSIcaldate, _KDcaldate):
                         Output = s.cal_BuyorNotbuy(Stock_id, earn=10, countday=14)
 
 
-		#=========================================================Classifier Training       
+		#=========================================================Classifier Training
                 classifier_machine = ClassifyObj(s.InputData, s.OutputData)
                 r = all(value == 0 for value in s.OutputData.values())
                 print r
                         
                 for stock_list in stock_all_no:
                         Stock_id=stock_list['id']
-			#Training
-                        #classifier_machine.Train(Stock_id)
-                        classifier_machine.training_each_classifiers(Stock_id)
-			#Predict for date
-                        result=classifier_machine.predict(Stock_id, predict_date)
+                        
+			#--------------------Training
+                        '''
+                        classifier_machine.Train(Stock_id)
+                        '''
+                        done_flag = classifier_machine.training_each_classifiers(Stock_id)
+                        if done_flag == 0:
+                                continue
+			#--------------------Predict for date
+                        '''
+                        result = classifier_machine.predict(Stock_id, predict_date)
                         if result[0] == 1:
                                 Buy_list.append({"id":Stock_id})
-
+                        '''
+                        Buy_list = classifier_machine.predict_each_classifiers(Stock_id, predict_date)
 		#=========================================================Show Result
                 result_file = open(re.sub("/", "-", predict_date)+".txt",'wb')
                 result_file.write(predict_date+'\n')
