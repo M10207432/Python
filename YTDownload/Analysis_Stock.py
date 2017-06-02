@@ -449,12 +449,13 @@ def main():
 	predict_date = "2017/03/03"
 	RSI_caldate = 9
 	KD_caldate = 9
-
+        '''
 	StockFlow(_trainingmonth = training_month,
                   _predictdate = predict_date,
                   _RSIcaldate = RSI_caldate,
                   _KDcaldate = KD_caldate)
-        
+        '''
+        help(plt.subplot)
 if __name__=="__main__":
         main()
         
