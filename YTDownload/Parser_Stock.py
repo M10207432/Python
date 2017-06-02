@@ -1,40 +1,72 @@
-import pandas,requests
+# -*- coding=UTF-8 -*-
+import requests
 import urllib2
 import re
-from Download import *
-from Stock import *
-from PIL import Image
+import datetime
+"""========================
+0	"日期"
+1	"成交股數"
+2	"成交金額"
+3	"開盤價"
+4	"最高價"
+5	"最低價"
+6	"收盤價"
+7	"漲跌價差"
+8	"成交筆數"
+========================"""
+class Stock_Info():
+    
+    def __init__(self, stock_url, payload):
+        self.stock_url = stock_url
+        self.payload = payload
 
+    def stockGet(self, stockNo, date):
+        self.payload["date"] = date
+        self.payload["stockNo"] = stockNo
+        
+        res = requests.get(self.stock_url, self.payload)
+        rawdata = res.json()
 
-def Instagram(url):
-    img=[]
-    res=requests.get(url)
-    m = re.compile(r"display_src\":\ \"(.*?).jpg")
+        if rawdata['stat'] == "OK":
+            #for i in rawdata['data']:
+            #    print i
+            return "success"
+        else:
+            print rawdata['stat']
+            return "fail"
+        
+    def stockTrace(self, stockNo):
+        #Local Variable
+        request_date = ""
+        parse_result = "success"
+        cur_date = datetime.datetime.now().strftime("%Y%m%d")
+        cur_year = datetime.datetime.now().strftime("%Y")
+        cur_month = datetime.datetime.now().strftime("%m")
 
-    for i in m.findall(res.text):
-        img.append(i+".jpg")
-
-    if len(img)==1:
-        res=urllib2.urlopen(img[0])
-        with open("img.jpg","wb") as f:
-            for rawdata in res.read():
-                f.write(rawdata)
-    else:
-        print "Amount of Img is wrong!!!"
-
-    #=====================================
-    for i in range(3):
-        I=Image.open("img.jpg")
-        I.show()
+        #Trace pass year
+        for year in range(int(cur_year), 0, -1):
+            for month in range(12, 0, -1):
+                if month < 10:
+                    request_date = str(year) + '0' + str(month) + "01"
+                else:
+                    request_date = str(year) + str(month) + "01"
+                
+                if request_date < cur_date:
+                    print request_date
+                    parse_result = self.stockGet(stockNo, request_date) #Trace this date stock
+                else:
+                    parse_result = "success"
+                    
+                if parse_result == "fail":
+                    break
+            if parse_result == "fail":
+                break
+        
 def main():
-    print "Parser"
+    stock_url = "http://www.tse.com.tw/exchangeReport/STOCK_DAY"
+    payload = {"reponse":"json", "date":"", "stockNo":""}
+    s = Stock_Info(stock_url, payload)
+    s.stockTrace("0050")
     
-    #DL_URL=""
-    #D=VideoDL("video2.mp4",DL_URL)
-    #s=StockObj()
-    #s.showStocknum()
-    Instagram("")
-    
-
 if __name__=="__main__":
     main()
