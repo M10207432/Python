@@ -3,9 +3,10 @@ import requests
 import urllib2
 import re
 import datetime
+import time
 from collections import *
 import pickle
-
+from threading import Thread
 """========================
 0	"日期"
 1	"成交股數"
@@ -84,6 +85,9 @@ def StockRefresh():
     stock_url = "http://www.tse.com.tw/exchangeReport/STOCK_DAY"
     payload = {"reponse":"json", "date":"", "stockNo":""}
 
+    thread_q = []
+    thread_limit = 10
+    
     #Create stock object
     s = Stock_Info(stock_url, payload)
 
@@ -91,15 +95,36 @@ def StockRefresh():
     with open(Infofile_name, 'r') as stockNo_ALL:
         for raw_stockNo in stockNo_ALL.readlines():
             stockNo = raw_stockNo.replace("\n",'')
+            
             if len(stockNo) == 4:
-                s.stockTrace(stockNo)
+                #s.stockTrace(stockNo)
+                
+                thread_q.append(Thread(target = s.stockTrace, name = str(stockNo), args = (stockNo,)))
+                thread_q[len(thread_q) - 1].start()
 
+            if len(thread_q) != thread_limit:
+                for th_id in range(len(thread_q)):
+                    if not thread_q[th_id].is_alive():
+                        thread_q.pop(th_id)
+                        break
+            else:
+                while len(thread_q) == thread_limit:
+                    for th_id in range(len(thread_q)):
+                        if not thread_q[th_id].is_alive():
+                            thread_q.pop(th_id)
+                            break
+                        
+    if len(thread_q) > 0:
+        for th_id in range(len(thread_q)):
+            while (thread_q[th_id].is_alive()):
+                pass
+            
     #Dump stock info
     pickle.dump(s.stockInfo, open(Dumpfile_name, 'w'))
-    
-def main():
-    
-    StockRefresh()
 
+def main():
+    print "Start"
+    StockRefresh()
+    
 if __name__=="__main__":
     main()
